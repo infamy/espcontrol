@@ -6,6 +6,7 @@ import {
     normalizeLanguage,
     normalizeTemperatureUnit,
     normalizeTimeOfDay,
+    screensaverModeOptions,
 } from "../model/settings";
 import type { ConfigCodecFeature } from "./config_codec";
 import type { UiRuntimeState } from "./state";
@@ -371,14 +372,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         var ssMode: any = getActiveScreensaverMode();
         var cameraMotionSupported: any = !!(layout.config.features && layout.config.features.cameraMotion);
         ssBody.appendChild(fieldLabel("Mode"));
-        var ssModeOptions: any = [
-            ["disabled", "Disabled"],
-            ["timer", "Timer"],
-            ["sensor", "Sensor"],
-        ];
-        if (cameraMotionSupported)
-            ssModeOptions.push(["camera", "Camera"]);
-        var ssModeSegment: any = segmentControl(ssModeOptions, ssMode, function (this: any, mode?: any) {
+        var ssModeSegment: any = segmentControl(screensaverModeOptions(cameraMotionSupported), ssMode, function (this: any, mode?: any) {
             setSsMode(mode);
             state.screensaverMode = mode;
             postScreensaverMode(mode);

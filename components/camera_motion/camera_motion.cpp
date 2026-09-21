@@ -33,14 +33,7 @@ static constexpr uint16_t REG_MIPI_CTRL00 = 0x4800;
 static constexpr uint16_t CHIP_ID = 0x5602;
 static constexpr uint32_t DEFAULT_VTS = 0x048C;
 
-static constexpr uint32_t EXPOSURE_MIN = 4;
 static constexpr uint32_t EXPOSURE_MARGIN = 16;
-static constexpr uint32_t GAIN_MIN_X16 = 16;   // 1x
-static constexpr uint32_t GAIN_MAX_X16 = 128;  // 8x keeps noise manageable
-// Auto exposure works on the 8-bit raw grid average.
-static constexpr float AE_TARGET = 70.0f;
-static constexpr float AE_LOW = 48.0f;
-static constexpr float AE_HIGH = 96.0f;
 
 static constexpr size_t INIT_WRITES_PER_LOOP = 24;
 static constexpr uint32_t SENSOR_RESET_WAIT_MS = 10;
@@ -570,16 +563,7 @@ void CameraMotionComponent::handle_start_failure_(const char *reason) {
 }
 
 uint16_t CameraMotionComponent::min_changed_cells_() const {
-  // Sensitivity 1 needs about a quarter of the picture to change, 50 about
-  // 3.5%, and 100 about 0.5%.
-  const float percent = 25.0f * std::pow(0.02f, this->sensitivity_ / 100.0f);
-  return std::max<uint16_t>(2, static_cast<uint16_t>(std::lround(GRID_CELLS * percent / 100.0f)));
-}
-
-float CameraMotionComponent::cell_threshold_scale_() const {
-  // Each area must also change more at low sensitivity: 2x at 1, 1x at 50,
-  // 0.5x at 100.
-  return std::pow(2.0f, (50.0f - this->sensitivity_) / 50.0f);
+  return min_changed_cells(this->sensitivity_, GRID_CELLS);
 }
 
 void CameraMotionComponent::process_frame_() {
@@ -627,21 +611,11 @@ void CameraMotionComponent::process_frame_() {
   this->changed_cells_.reset();
   this->last_level_ = 0.0f;
   if (this->have_prev_ && this->skip_compare_frames_ == 0 && !warming_up) {
-    // Compensate for overall brightness drift so gradual light changes and
-    // exposure steps are not mistaken for movement.
-    const float scale = mean > 1.0f ? this->prev_mean_ / mean : 1.0f;
     // Higher gain means more sensor noise, so each area must change more.
     const float threshold_scale =
-        std::sqrt(static_cast<float>(this->gain_x16_) / GAIN_MIN_X16) * this->cell_threshold_scale_();
-    uint16_t changed = 0;
-    for (int i = 0; i < GRID_CELLS; i++) {
-      const float prev = this->prev_grid_[i];
-      const float threshold = (10.0f + prev / 16.0f) * threshold_scale;
-      if (std::fabs(this->grid_[i] * scale - prev) > threshold) {
-        changed++;
-        this->changed_cells_.set(i);
-      }
-    }
+        std::sqrt(static_cast<float>(this->gain_x16_) / GAIN_MIN_X16) * cell_threshold_scale(this->sensitivity_);
+    const uint16_t changed = count_changed_cells(this->prev_grid_, this->grid_, this->prev_mean_, mean,
+                                                 threshold_scale, &this->changed_cells_);
     const float level = changed * 100.0f / GRID_CELLS;
     this->last_level_ = level;
     this->window_max_level_ = std::max(this->window_max_level_, level);
@@ -679,7 +653,7 @@ void CameraMotionComponent::process_frame_() {
 
 void CameraMotionComponent::run_auto_exposure_(float mean) {
   const bool warming_up = millis() - this->running_since_ms_ < WARMUP_MS;
-  if (mean >= AE_LOW && mean <= AE_HIGH) {
+  if (exposure_in_band(mean)) {
     this->ae_out_of_band_frames_ = 0;
     return;
   }
@@ -688,16 +662,11 @@ void CameraMotionComponent::run_auto_exposure_(float mean) {
     return;
   this->ae_out_of_band_frames_ = 0;
 
-  const float max_step = warming_up ? 8.0f : 4.0f;
-  const float ratio = std::clamp(AE_TARGET / std::max(mean, 1.0f), 1.0f / max_step, max_step);
-  const float wanted = static_cast<float>(this->exposure_lines_) * this->gain_x16_ * ratio;
-  const uint32_t exposure = static_cast<uint32_t>(
-      std::clamp(wanted / GAIN_MIN_X16, static_cast<float>(EXPOSURE_MIN), static_cast<float>(this->exposure_max_)));
-  const uint32_t gain = static_cast<uint32_t>(
-      std::clamp(wanted / exposure, static_cast<float>(GAIN_MIN_X16), static_cast<float>(GAIN_MAX_X16)));
-  if (exposure == this->exposure_lines_ && gain == this->gain_x16_)
+  const ExposureSetting next =
+      next_exposure(mean, {this->exposure_lines_, this->gain_x16_}, this->exposure_max_, warming_up);
+  if (next.exposure_lines == this->exposure_lines_ && next.gain_x16 == this->gain_x16_)
     return;  // Already at a limit.
-  if (this->apply_exposure_(exposure, gain)) {
+  if (this->apply_exposure_(next.exposure_lines, next.gain_x16)) {
     // New settings take a frame or two to show; do not compare across them.
     this->skip_compare_frames_ = 2;
   }

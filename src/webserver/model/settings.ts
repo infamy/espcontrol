@@ -390,9 +390,26 @@ export interface BackupPanelSettingsState {
   screenRotation: string;
 }
 
-function normalizeScreensaverMode(value: unknown): string {
+export function normalizeScreensaverMode(value: unknown): string {
   const mode = String(value || "disabled");
   return mode === "sensor" || mode === "timer" || mode === "camera" || mode === "disabled" ? mode : "disabled";
+}
+
+// Camera mode is only offered on panels with the built-in camera.
+export function screensaverModeOptions(cameraMotionSupported: boolean): [string, string][] {
+  const options: [string, string][] = [
+    ["disabled", "Disabled"],
+    ["timer", "Timer"],
+    ["sensor", "Sensor"],
+  ];
+  if (cameraMotionSupported) options.push(["camera", "Camera"]);
+  return options;
+}
+
+// A Camera backup restored on a panel without a camera keeps its sleep timer.
+export function screensaverModeForDevice(mode: unknown, cameraMotionSupported: boolean): string {
+  const normalized = normalizeScreensaverMode(mode);
+  return normalized === "camera" && !cameraMotionSupported ? "timer" : normalized;
 }
 
 function normalizeScreenRotationValue(value: unknown, options: readonly string[]): string {

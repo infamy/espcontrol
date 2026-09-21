@@ -510,10 +510,8 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         postText(entityName("screen_ntp_server_3"), importedNtpServer3);
                     }
                     var cameraMotionSupported: any = !!(controllers.layout.config.features && controllers.layout.config.features.cameraMotion);
-                    var importedScreensaverMode: any = importedSettings.screensaverMode;
-                    // A camera backup restored on a panel without a camera keeps its sleep timer.
-                    if (importedScreensaverMode === "camera" && !cameraMotionSupported)
-                        importedScreensaverMode = "timer";
+                    var importedScreensaverMode: any = EspControlModel.screensaverModeForDevice(
+                        importedSettings.screensaverMode, cameraMotionSupported);
                     postScreensaverMode(importedScreensaverMode);
                     if (cameraMotionSupported)
                         postCameraMotionSensitivity(importedSettings.cameraMotionSensitivity);

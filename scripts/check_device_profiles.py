@@ -125,6 +125,20 @@ def test_s3_exposes_camera_and_media_cover_art(profiles: dict[str, dict]) -> Non
     )
 
 
+def test_camera_motion_only_on_camera_panels(profiles: dict[str, dict]) -> None:
+    camera_panels = {"guition-esp32-p4-jc1060p470-v2"}
+    for slug, profile in profiles.items():
+        packages = profile["firmware"]["package"].get("extraPackages") or {}
+        has_camera = slug in camera_panels
+        assert ("camera_motion" in packages) == has_camera, (
+            f"{slug}: the camera_motion package belongs only on panels with the built-in camera"
+        )
+        features = web_config(profile).get("features", {})
+        assert bool(features.get("cameraMotion")) == has_camera, (
+            f"{slug}: Camera screensaver mode must follow the camera_motion package"
+        )
+
+
 def test_public_device_capabilities(profile_slugs: list[str]) -> None:
     expected = public_device_capabilities()
     actual = read_json(DEVICE_CAPABILITIES_JSON)
@@ -1006,6 +1020,7 @@ def main() -> int:
     test_s3_low_heap_policy()
     test_zero_image_capacity_disables_all_image_card_pickers(profiles)
     test_s3_exposes_camera_and_media_cover_art(profiles)
+    test_camera_motion_only_on_camera_panels(profiles)
     test_generated_yaml(profiles)
     test_v3_release_configuration()
     test_public_api_encryption_policy(profile_slugs)

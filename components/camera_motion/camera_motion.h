@@ -21,6 +21,7 @@
 #include "esphome/core/component.h"
 #include "esphome/core/helpers.h"
 
+#include "motion_policy.h"
 #include "ov02c10_modes.h"
 
 #include "driver/isp.h"
@@ -122,7 +123,6 @@ class CameraMotionComponent : public Component, public i2c::I2CDevice {
   void run_auto_exposure_(float mean);
   bool apply_exposure_(uint32_t exposure_lines, uint32_t gain_x16);
   uint16_t min_changed_cells_() const;
-  float cell_threshold_scale_() const;
   void log_picture_(float mean) const;
   bool preview_active_(uint32_t now);
   void render_preview_();
