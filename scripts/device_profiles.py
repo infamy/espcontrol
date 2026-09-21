@@ -888,6 +888,8 @@ def web_features(profile: dict[str, Any]) -> dict[str, Any]:
         features["voiceServices"] = True
     if "battery" in (package.get("extraPackages") or {}):
         features["battery"] = True
+    if "camera_motion" in (package.get("extraPackages") or {}):
+        features["cameraMotion"] = True
     if package.get("alarmDelayAudio"):
         features["alarmDelayAudio"] = True
     if package.get("subpageConfigChunks"):

@@ -11,7 +11,7 @@
   "summary": {
     "deviceProfiles": 8,
     "cardTypes": 43,
-    "entityNames": 101,
+    "entityNames": 102,
     "icons": 357,
     "structuralIcons": 22,
     "compatibilityFixtureGroups": 2
@@ -407,6 +407,9 @@
           "networkCoprocessor": true,
           "esp32C6FirmwareUpdate": true,
           "ethernetSelectable": true,
+          "extraPackages": {
+            "camera_motion": "!include ../../common/addon/camera_motion.yaml"
+          },
           "backlightPwmFrequency": {
             "wifi": "1000Hz",
             "ethernet": "20000Hz"
@@ -7018,6 +7021,18 @@
         ],
         "groups": [
           "settings"
+        ]
+      },
+      {
+        "key": "camera_motion_sensitivity",
+        "domain": "number",
+        "name": "Camera Motion: Sensitivity",
+        "objectIds": [
+          "camera_motion__sensitivity",
+          "camera_motion_sensitivity"
+        ],
+        "groups": [
+          "settings_camera"
         ]
       },
       {

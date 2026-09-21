@@ -404,6 +404,14 @@ export const ENTITY_CATALOG = {
         "screensaver_timeout"
       ]
     },
+    "camera_motion_sensitivity": {
+      "domain": "number",
+      "name": "Camera Motion: Sensitivity",
+      "objectIds": [
+        "camera_motion__sensitivity",
+        "camera_motion_sensitivity"
+      ]
+    },
     "home_screen_timeout": {
       "domain": "number",
       "name": "Home Screen Timeout",
@@ -821,6 +829,9 @@ export const ENTITY_CATALOG = {
       "alarm_delay_exit_announcement",
       "alarm_delay_beep_volume",
       "alarm_delay_final_countdown"
+    ],
+    "settings_camera": [
+      "camera_motion_sensitivity"
     ],
     "settings_optional": [
       "screen_rotation"

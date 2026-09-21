@@ -81,6 +81,9 @@ export function createStateLoaderFeature(runtime: UiRuntimeState, layout: Applic
         if (layout.config.features && layout.config.features.alarmDelayAudio) {
             items = items.concat(entityStateItems(ENTITY_CATALOG.groups.settings_alarm_audio));
         }
+        if (layout.config.features && layout.config.features.cameraMotion) {
+            items = items.concat(entityStateItems(ENTITY_CATALOG.groups.settings_camera));
+        }
         return items;
     }
     function subpageStateEntities(this: any) {

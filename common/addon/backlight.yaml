@@ -674,7 +674,8 @@ script:
                 return false;
               }
               return id(screensaver_mode).state == "timer" ||
-                     id(screensaver_mode).state == "sensor";
+                     id(screensaver_mode).state == "sensor" ||
+                     id(screensaver_mode).state == "camera";
           then:
             - delay: !lambda |-
                 float val = id(screensaver_timeout).state;
@@ -1223,6 +1224,7 @@ script:
               const bool cover_art_disabled_mode_delay =
                 id(screensaver_mode).state != "timer" &&
                 id(screensaver_mode).state != "sensor" &&
+                id(screensaver_mode).state != "camera" &&
                 show_after_seconds > 0.0f;
               return (id(media_player_sleep_prevention_enabled).state ||
                       cover_art_touch_return_pending ||

@@ -1,0 +1,88 @@
+# =============================================================================
+# CAMERA MOTION - Wake the screen when the built-in camera sees movement
+# =============================================================================
+# Trial feature for 7" JC1060P470 panels with the front OV02C10 camera. With
+# Screensaver Mode set to "camera" the screen sleeps on the normal timer, and
+# the camera runs while the screensaver has the screen dimmed, showing the
+# clock, or off (the same states presence wake can leave). Test Mode keeps it
+# running for tuning. Pictures are reduced on the panel to a coarse brightness
+# grid and are not stored; the only picture sent anywhere is the settings-page
+# preview, while it is open. Night Schedule time mode keeps priority, as it
+# does for presence wake.
+# =============================================================================
+
+external_components:
+  - source:
+      type: git
+      url: ${espcontrol_component_url}
+      ref: ${espcontrol_component_ref}
+      path: components
+    components: [camera_motion]
+    refresh: 1s
+
+camera_motion:
+  id: camera_motion_engine
+  i2c_id: bus_a
+  motion:
+    name: "Camera Motion: Motion"
+    id: camera_motion_detected
+  motion_level:
+    name: "Camera Motion: Level"
+  brightness:
+    name: "Camera Motion: Picture Brightness"
+  status:
+    name: "Camera Motion: Status"
+  on_motion:
+    - if:
+        condition:
+          lambda: |-
+            return id(screensaver_mode).state == "camera" &&
+                   espcontrol::presence_can_wake_display(id(espcontrol_app).display().resolve());
+        then:
+          - lambda: 'ESP_LOGI("camera_motion", "Waking the screen for camera motion");'
+          - script.execute: screensaver_wake
+
+switch:
+  # Keeps the camera running while the screen is on so the motion level can be
+  # watched while tuning sensitivity. It never wakes the screen by itself.
+  - platform: template
+    name: "Camera Motion: Test Mode"
+    id: camera_motion_test_mode
+    icon: mdi:cctv
+    optimistic: true
+    restore_mode: ALWAYS_OFF
+    entity_category: config
+
+number:
+  - platform: template
+    name: "${entity_camera_motion_sensitivity}"
+    internal: true
+    id: camera_motion_sensitivity
+    icon: mdi:tune-vertical
+    optimistic: true
+    restore_value: true
+    initial_value: 50
+    min_value: 1
+    max_value: 100
+    step: 1
+    entity_category: config
+    web_server:
+      sorting_group_id: sg_screensaver
+
+button:
+  - platform: template
+    name: "Camera Motion: Log Picture"
+    icon: mdi:image-text
+    entity_category: diagnostic
+    on_press:
+      - lambda: 'id(camera_motion_engine).request_picture_log();'
+
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          const bool screen_asleep = espcontrol::presence_can_wake_display(
+              id(espcontrol_app).display().resolve());
+          id(camera_motion_engine).set_sensitivity(id(camera_motion_sensitivity).state);
+          id(camera_motion_engine).set_run_request(id(screensaver_mode).state == "camera" && screen_asleep,
+                                                   id(camera_motion_test_mode).state);

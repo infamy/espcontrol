@@ -386,6 +386,9 @@
           "networkCoprocessor": true,
           "esp32C6FirmwareUpdate": true,
           "ethernetSelectable": true,
+          "extraPackages": {
+            "camera_motion": "!include ../../common/addon/camera_motion.yaml"
+          },
           "backlightPwmFrequency": {
             "wifi": "1000Hz",
             "ethernet": "20000Hz"
