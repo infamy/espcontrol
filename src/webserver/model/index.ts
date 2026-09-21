@@ -124,6 +124,7 @@ export {
   normalizeHomeAssistantArtworkProtocol,
   normalizeHomeAssistantArtworkEndpointMode,
   normalizeBrightnessMode,
+  normalizeCameraMotionSensitivity,
   normalizeLanguage,
   normalizeNtpServer,
   normalizeScheduleClockBrightness,
@@ -135,11 +136,14 @@ export {
   normalizeScheduleWakeTimeout,
   normalizeScreensaverAction,
   normalizeScreensaverDimmedBrightness,
+  normalizeScreensaverMode,
   normalizeTemperatureUnit,
   normalizeTimeOfDay,
   scheduleModeOption,
   scheduleSensorActivationOption,
   screensaverActionOption,
+  screensaverModeForDevice,
+  screensaverModeOptions,
 } from "./settings";
 
 export type {

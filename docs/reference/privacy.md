@@ -71,6 +71,13 @@ These requests are initiated by your configuration and may expose information
 to the service named by the URL or integration. Review the privacy practices
 of those services before enabling them.
 
+On panels with a built-in camera, the Camera screensaver mode uses the camera
+to detect movement. Pictures are processed on the device and are not stored or
+sent to Home Assistant or any other service. The only exception is the camera
+preview on the built-in settings page, which sends small pictures over your
+local network to your browser while the preview is open. The camera is off
+unless Camera mode, its Home Assistant test mode, or the preview needs it.
+
 ## Firmware and asset downloads
 
 Firmware with EspControl's update checker enabled periodically requests public

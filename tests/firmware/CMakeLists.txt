@@ -365,6 +365,13 @@ add_test(NAME cover_art_activation_test COMMAND
   --compiler ${CMAKE_CXX_COMPILER})
 add_test(NAME presence_transition_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/presence_transition_test.py)
+add_executable(camera_motion_policy_test camera_motion_policy_test.cpp)
+target_compile_features(camera_motion_policy_test PRIVATE cxx_std_17)
+target_compile_options(camera_motion_policy_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(camera_motion_policy_test PRIVATE ../../components/camera_motion)
+add_test(NAME camera_motion_policy_test COMMAND camera_motion_policy_test)
+add_test(NAME camera_motion_wiring_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/camera_motion_wiring_test.py)
 add_test(NAME ha_reconnect_recovery_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ha_reconnect_recovery_test.py)
 add_test(NAME cover_art_metadata_test COMMAND

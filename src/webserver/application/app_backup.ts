@@ -170,6 +170,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postScreensaverDimmedBrightnessDay,
         postScreensaverDimmedBrightnessNight,
         postScreensaverTimeout,
+        postCameraMotionSensitivity,
         postHomeScreenTimeout,
         postNumber,
     } = requestApi;
@@ -269,6 +270,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 ntp_server_2: state.ntpServer2,
                 ntp_server_3: state.ntpServer3,
                 screensaver_mode: getActiveScreensaverMode(),
+                camera_motion_sensitivity: state.cameraMotionSensitivity,
                 presence_sensor_entity: state.presenceEntity,
                 media_player_sleep_prevention: state.mediaPlayerSleepPreventionOn,
                 media_player_sleep_prevention_entity: state.mediaPlayerSleepPreventionEntity || state.coverArtMediaPlayerEntity,
@@ -507,8 +509,12 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     if (hasNtpServer3) {
                         postText(entityName("screen_ntp_server_3"), importedNtpServer3);
                     }
-                    var importedScreensaverMode: any = importedSettings.screensaverMode;
+                    var cameraMotionSupported: any = !!(controllers.layout.config.features && controllers.layout.config.features.cameraMotion);
+                    var importedScreensaverMode: any = EspControlModel.screensaverModeForDevice(
+                        importedSettings.screensaverMode, cameraMotionSupported);
                     postScreensaverMode(importedScreensaverMode);
+                    if (cameraMotionSupported)
+                        postCameraMotionSensitivity(importedSettings.cameraMotionSensitivity);
                     postPresenceSensorEntity(importedSettings.presenceSensorEntity);
                     postMediaPlayerSleepPrevention(importedSettings.mediaPlayerSleepPrevention);
                     postMediaPlayerSleepPreventionEntity(importedSettings.mediaPlayerSleepPreventionEntity);
@@ -573,6 +579,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.customNtpServers = hasCustomNtpServers();
                     state.screensaverMode = importedScreensaverMode;
                     state._screensaverModeReceived = true;
+                    state.cameraMotionSensitivity = importedSettings.cameraMotionSensitivity;
                     state.presenceEntity = importedSettings.presenceSensorEntity;
                     state.mediaPlayerSleepPreventionOn = importedSettings.mediaPlayerSleepPrevention;
                     state.mediaPlayerSleepPreventionEntity = importedSettings.mediaPlayerSleepPreventionEntity;
@@ -625,6 +632,10 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     syncClockScreensaverControls();
                     syncScreensaverTimeoutUi();
                     syncIdleUi(controllers.runtime);
+                    if (els.setCameraSensitivity) {
+                        els.setCameraSensitivity.value = state.cameraMotionSensitivity;
+                        els.setCameraSensitivityVal.textContent = state.cameraMotionSensitivity + "%";
+                    }
                     if (els.setScreenRotation)
                         els.setScreenRotation.value = state.screenRotation;
                     syncPreviewOrientation();

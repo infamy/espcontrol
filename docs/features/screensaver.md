@@ -1,14 +1,14 @@
 ---
 title: EspControl Screensaver
 description:
-  How to configure screensaver modes and presence sensor wake on your EspControl panel.
+  How to configure screensaver modes, presence sensor wake, and camera wake on your EspControl panel.
 ---
 
 # Screensaver
 
 The panel can use a screensaver when it's not being used. When active, it can dim the normal screen, show a dim clock, or turn the backlight off so the panel goes dark. Touch the screen to wake it up.
 
-There are three screen saver modes, configured in the **Settings** tab on the [Setup](/features/setup) page:
+There are three screensaver modes, configured in the **Settings** tab on the [Setup](/features/setup) page. Panels with a built-in camera also have a fourth, [Camera](#camera):
 
 ## Disabled
 
@@ -49,6 +49,36 @@ Presence wakes the panel from those dimmed, clock, or display-off states. When t
 
 Switching back to Timer keeps the sensor name saved, so you can return to Sensor mode later without typing it in again.
 
+## Camera
+
+Camera mode uses the panel's built-in front camera to wake the screen, so no separate motion sensor is needed. It is available on the [7-inch JC1060P470](/screens/jc1060p470) V2 / new panel firmware.
+
+The screensaver starts after the **Timeout**, like Timer mode, and uses the same **Then** options. While the screen is dimmed, showing the clock, or off, the camera watches for movement and wakes the screen when it sees some. The camera is off while the screen is in use.
+
+- **Camera Sensitivity** — from 1 to 100 (default 50). Higher values wake on smaller movements. Lower values need more of the picture to change, which helps ignore small movements near the panel.
+- **Show Camera Preview** — shows a small live picture from the camera, refreshed about once a second. Areas that changed since the previous picture are outlined in red, with the motion level and picture brightness underneath. Use it to check what the camera can see and to set the sensitivity while walking past. The camera stops a few seconds after you hide the preview or leave the page.
+
+Things to know:
+
+- The camera needs some light and cannot see in a dark room. Switching a light on usually wakes the panel.
+- The camera sees what is in front of the screen. A panel lying flat mostly sees the ceiling, so people walking past may not wake it.
+- Pictures are processed on the panel and are not stored. The preview is the only time a picture leaves the panel, and only to the settings page while the preview is open.
+- On a panel without a camera, Camera mode works like Timer mode.
+- Backups include Camera mode and its sensitivity. Restoring the backup on a panel without Camera mode uses Timer mode instead.
+
+Home Assistant shows diagnostic entities that help with tuning:
+
+| Entity | What it shows |
+| --- | --- |
+| **Camera Motion: Status** | Whether the camera is in standby, starting, watching for motion, or has a problem. |
+| **Camera Motion: Level** | How much of the picture changed, as a percentage. |
+| **Camera Motion: Motion** | On while movement is being detected. |
+| **Camera Motion: Picture Brightness** | How bright the camera picture is. |
+| **Camera Motion: Test Mode** | Keeps the camera running while the screen is on, without waking it, so you can watch the level. |
+| **Camera Motion: Log Picture** | Writes a coarse text picture of the camera view to the device log. |
+
+If the panel restarts unexpectedly while the camera is running, camera wake stays off and the status shows **Stopped after unexpected restart**. Restart the panel to turn it back on.
+
 ::: tip
 Touching the screen or pressing its **Screen: Wake** button in Home Assistant always wakes it up, no matter which screensaver mode you're using.
 :::
@@ -76,7 +106,7 @@ Replace the example entity IDs with your own door sensor and the panel's **Scree
 
 The [screen schedule](/features/screen-schedule) is separate from the screensaver. Use it when you want the panel to be fully dark, dimmed, or showing a clock overnight.
 
-When Night Schedule is using fixed **Time** hours, it has priority over screensaver sensor wake during night time. The screensaver presence sensor still keeps the panel awake and wakes it during normal daytime operation, but it does not override scheduled night time. Touch and Home Assistant button wake still work, using the temporary wake settings from the screen schedule.
+When Night Schedule is using fixed **Time** hours, it has priority over screensaver sensor and camera wake during night time. The screensaver presence sensor still keeps the panel awake and wakes it during normal daytime operation, but it does not override scheduled night time. Touch and Home Assistant button wake still work, using the temporary wake settings from the screen schedule.
 
 If you want presence to control when the panel is in night mode, set Night Schedule to **Sensor** mode instead of **Time** mode.
 
