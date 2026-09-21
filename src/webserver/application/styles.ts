@@ -82,6 +82,14 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-btn.sp-selected{border-color:var(--accent)}" +
         ".sp-wifi-qr-card{padding:0;background:#fff!important;align-items:center;justify-content:center}" +
         ".sp-wifi-qr-card:hover{filter:none}" +
+        ".sp-dual-switch{position:absolute;inset:var(--btn-pad);display:flex;flex-direction:column;gap:calc(var(--btn-pad) / 2);color:#fff}" +
+        ".sp-dual-switch-side{flex-direction:row}" +
+        ".sp-dual-switch-half{flex:1;min-width:0;min-height:0;display:flex;align-items:center;gap:calc(var(--btn-pad) * .75)}" +
+        ".sp-dual-switch-side .sp-dual-switch-half{flex-direction:column;align-items:flex-start;justify-content:space-between}" +
+        ".sp-dual-switch-badge{flex:none;display:flex;align-items:center;justify-content:center;width:1.45em;height:1.45em;" +
+        "border-radius:50%;background:rgba(255,255,255,.1);font-size:calc(var(--btn-icon) * .75);line-height:1}" +
+        ".sp-dual-switch-name{min-width:0;font-size:var(--btn-label);line-height:1.2;overflow:hidden;word-break:break-word;" +
+        "display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}" +
         ".sp-wifi-qr-preview{display:block;width:84%;height:84%;pointer-events:none}" +
         ".sp-wifi-qr-card.sp-btn-big .sp-wifi-qr-preview,.sp-wifi-qr-card.sp-btn-extra-large .sp-wifi-qr-preview," +
         ".sp-wifi-qr-card.sp-btn-max-tall .sp-wifi-qr-preview,.sp-wifi-qr-card.sp-btn-portrait-large .sp-wifi-qr-preview{width:97%;height:97%}" +

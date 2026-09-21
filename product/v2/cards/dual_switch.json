@@ -1,0 +1,12 @@
+{
+  "label": "Dual Switch",
+  "allowInSubpage": true,
+  "domains": ["light", "switch", "input_boolean", "fan"],
+  "options": [
+    { "name": "dual_layout", "label": "Layout", "kind": "choice", "values": ["", "side"], "defaultValue": "", "storageField": "precision", "omitDefault": false }
+  ],
+  "default": {
+    "entity": "", "label": "", "icon": "Auto", "icon_on": "Auto",
+    "sensor": "", "unit": "", "type": "dual_switch", "precision": "", "options": ""
+  }
+}

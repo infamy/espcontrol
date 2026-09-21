@@ -61,6 +61,7 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   climate: { icon: "thermostat", description: "Show climate status and temperature controls." },
   cover: { icon: "window-shutter", description: "Control blinds, curtains, or covers." },
   door_window: { icon: "door-open", description: "Show open or closed sensor state." },
+  dual_switch: { icon: "toggle-switch-variant", description: "Toggle two lights or switches from one card." },
   presence: { icon: "account", description: "Show person or presence status." },
   fan_speed: { icon: "fan", description: "Control fan speed, mode, or direction." },
   garage: { icon: "garage", description: "Show and control a garage door." },

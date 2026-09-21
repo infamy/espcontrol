@@ -2,6 +2,70 @@
   "baselineVersion": 1,
   "cases": [
     {
+      "name": "dual_switch: stacked",
+      "sourceKind": "contract",
+      "sourceType": "dual_switch",
+      "mode": "stacked",
+      "canonicalType": "dual_switch",
+      "web": {
+        "registration": "dual_switch",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "231d40fd124d8577"
+        }
+      },
+      "firmware": {
+        "family": "DUAL_SWITCH"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "dual_switch: side_by_side",
+      "sourceKind": "contract",
+      "sourceType": "dual_switch",
+      "mode": "side_by_side",
+      "canonicalType": "dual_switch",
+      "web": {
+        "registration": "dual_switch",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "8d9561a6cf1eee49"
+        }
+      },
+      "firmware": {
+        "family": "DUAL_SWITCH"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
       "name": "timer: countdown",
       "sourceKind": "contract",
       "sourceType": "timer",

@@ -10,7 +10,7 @@
   },
   "summary": {
     "deviceProfiles": 8,
-    "cardTypes": 43,
+    "cardTypes": 44,
     "entityNames": 101,
     "icons": 357,
     "structuralIcons": 22,
@@ -1685,7 +1685,8 @@
         "weather",
         "image",
         "wifi_qr",
-        "timer"
+        "timer",
+        "dual_switch"
       ],
       "capabilities": [
         "informationOnly",
@@ -1699,6 +1700,18 @@
       "specs": {
         "timer": {
           "driver": "timer",
+          "capabilities": {
+            "informationOnly": false,
+            "subscriptions": true,
+            "actions": true,
+            "numericControl": false,
+            "modal": false,
+            "runtimeAllocation": true,
+            "subpage": true
+          }
+        },
+        "dual_switch": {
+          "driver": "dual_switch",
           "capabilities": {
             "informationOnly": false,
             "subscriptions": true,
@@ -2262,6 +2275,41 @@
           "sensor": "",
           "unit": "3",
           "type": "timer",
+          "precision": "",
+          "options": ""
+        }
+      },
+      "dual_switch": {
+        "label": "Dual Switch",
+        "allowInSubpage": true,
+        "domains": [
+          "light",
+          "switch",
+          "input_boolean",
+          "fan"
+        ],
+        "options": [
+          {
+            "name": "dual_layout",
+            "label": "Layout",
+            "kind": "choice",
+            "values": [
+              "",
+              "side"
+            ],
+            "defaultValue": "",
+            "storageField": "precision",
+            "omitDefault": false
+          }
+        ],
+        "default": {
+          "entity": "",
+          "label": "",
+          "icon": "Auto",
+          "icon_on": "Auto",
+          "sensor": "",
+          "unit": "",
+          "type": "dual_switch",
           "precision": "",
           "options": ""
         }
@@ -6352,6 +6400,7 @@
     "retiredSubpageTypeCodes": [],
     "subpageTypeCodes": {
       "timer": "TM",
+      "dual_switch": "DS",
       "action": "A",
       "calendar": "D",
       "clock": "CK",

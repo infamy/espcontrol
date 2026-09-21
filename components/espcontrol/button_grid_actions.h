@@ -857,6 +857,10 @@ inline void handle_button_press(const std::string &cfg, int slot_num,
                                 lv_obj_t *btn_obj) {
   if (slot_num <= 0 || slot_num > MAX_GRID_SLOTS) return;
   ParsedCfg p = parse_cfg(cfg);
+  if (p.type == "dual_switch") {
+    dual_switch_handle_press(btn_obj);
+    return;
+  }
   if (btn_obj && button_press_opens_modal(p, btn_obj)) {
     // The modal replaces this card on release. Clearing the state inside the
     // press event avoids scheduling a pointless pressed-card repaint first.
@@ -901,6 +905,8 @@ inline void light_control_open_modal(LightControlCtx *ctx);
 namespace espcontrol::cards {
 inline bool timer_driver_handle_main_click(
     const Context &context, const ParsedCfg &config, lv_obj_t *button);
+inline bool dual_switch_driver_handle_main_click(
+    const Context &context, lv_obj_t *button);
 inline bool basic_action_driver_handle_main_click(
     const Context &context, const ParsedCfg &config,
     int slot_number, lv_obj_t *button);
@@ -942,6 +948,7 @@ inline void handle_button_click(const std::string &cfg, int slot_num,
            slot_num, p.type.c_str(), p.entity.c_str(), p.sensor.c_str(), p.label.c_str());
   if (card_runtime_passive(context)) return;
   if (espcontrol::cards::timer_driver_handle_main_click(context, p, btn_obj)) return;
+  if (espcontrol::cards::dual_switch_driver_handle_main_click(context, btn_obj)) return;
   if (espcontrol::cards::basic_action_driver_handle_main_click(
         context, p, slot_num, btn_obj)) return;
   if (espcontrol::cards::numeric_selectable_driver_handle_main_click(

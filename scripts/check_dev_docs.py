@@ -185,6 +185,7 @@ PUBLIC_DOCS_BY_TYPE: dict[str, str] = {
     "slider": "docs/card-types/sliders.md",
     "subpage": "docs/features/subpages.md",
     "timer": "docs/card-types/timers.md",
+    "dual_switch": "docs/card-types/dual-switches.md",
     "timezone": "docs/card-types/timezones.md",
     "vacuum": "docs/card-types/vacuum.md",
     "lawn_mower": "docs/card-types/lawn-mower.md",

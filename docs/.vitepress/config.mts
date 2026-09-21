@@ -446,6 +446,7 @@ export default defineConfig({
           { text: 'Date & Time', link: '/card-types/calendar' },
           { text: "Timer", link: "/card-types/timers" },
           { text: 'Doors & Windows', link: '/card-types/doors-windows' },
+          { text: 'Dual Switch', link: '/card-types/dual-switches' },
           { text: 'Fans', link: '/card-types/fans' },
           { text: 'Garage Door', link: '/card-types/garage-doors' },
           { text: 'Gate', link: '/card-types/gates' },

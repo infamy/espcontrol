@@ -476,3 +476,9 @@ add_test(NAME timer_subpage_cleanup_test
 
 add_test(NAME camera_feedback_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/camera_feedback_test.py ${CMAKE_CXX_COMPILER})
+
+add_executable(dual_switch_layout_test dual_switch_layout_test.cpp)
+target_compile_features(dual_switch_layout_test PRIVATE cxx_std_17)
+target_compile_options(dual_switch_layout_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(dual_switch_layout_test PRIVATE ../../components/espcontrol)
+add_test(NAME dual_switch_layout_test COMMAND dual_switch_layout_test)

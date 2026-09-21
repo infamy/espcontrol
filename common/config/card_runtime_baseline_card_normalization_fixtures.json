@@ -1,5 +1,35 @@
 [
   {
+    "name": "dual_switch: stacked",
+    "input": "~light.kitchen,,Auto,Auto,switch.coffee_maker,,dual_switch,,",
+    "expected": {
+      "entity": "light.kitchen",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "switch.coffee_maker",
+      "unit": "",
+      "type": "dual_switch",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "dual_switch: side_by_side",
+    "input": "~light.kitchen,,Auto,Auto,switch.coffee_maker,,dual_switch,side,",
+    "expected": {
+      "entity": "light.kitchen",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "switch.coffee_maker",
+      "unit": "",
+      "type": "dual_switch",
+      "precision": "side",
+      "options": ""
+    }
+  },
+  {
     "name": "timer: countdown",
     "input": "~timer.example,,Auto,Auto,,3,timer,,",
     "expected": {

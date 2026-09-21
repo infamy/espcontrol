@@ -15,6 +15,7 @@ Use this page when you know what you want the panel to do but are not sure which
 | Goal | Use this card | Entity or target |
 |---|---|---|
 | Toggle a light, switch, fan, or helper | [Switch](/card-types/switches) | `light`, `switch`, `input_boolean`, or `fan` |
+| Toggle two lights, switches, fans, or helpers from one card | [Dual Switch](/card-types/dual-switches) | `light`, `switch`, `input_boolean`, or `fan` |
 | Control a light as on/off, brightness, colour temperature, or colour presets | [Lights](/card-types/lights) | `light` |
 | Run a scene, script, automation, helper action, button press, or local panel action | [Action](/card-types/actions) | Depends on the selected action |
 | Show or control a robot vacuum | [Vacuum](/card-types/vacuum) | `vacuum` |
