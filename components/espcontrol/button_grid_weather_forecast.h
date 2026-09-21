@@ -157,9 +157,32 @@ inline std::string weather_label_for_state(const std::string &state) {
   return sentence_cap_text(state);
 }
 
+// Fonts for the Daily Forecast layout, taken from the card's own labels so the
+// strip matches each display's card typography.
+struct WeatherDaysCardFonts {
+  const lv_font_t *icon = nullptr;
+  const lv_font_t *value = nullptr;
+  const lv_font_t *text = nullptr;
+};
+
 #if defined(ESPCONTROL_DISABLE_WEATHER_FORECAST) && ESPCONTROL_DISABLE_WEATHER_FORECAST
 
 inline void reset_weather_forecast_cards() {}
+
+inline bool register_weather_days_card(lv_obj_t *, const WeatherDaysCardFonts &,
+                                       const std::string &) {
+  return false;
+}
+
+inline void weather_days_card_set_columns(lv_obj_t *, int) {}
+
+inline void weather_days_set_current_state(lv_obj_t *, const std::string &) {}
+
+inline void weather_days_set_current_temperature(lv_obj_t *, const std::string &) {}
+
+inline void weather_days_set_current_unit(lv_obj_t *, const std::string &) {}
+
+inline bool weather_days_card_registered(lv_obj_t *) { return false; }
 
 inline void refresh_weather_forecast_card_visuals() {}
 
@@ -213,12 +236,50 @@ inline int &weather_forecast_card_count() {
   return count;
 }
 
+// Daily Forecast cards hold more state, so only a few are supported at once.
+constexpr int WEATHER_DAYS_CARDS_MAX = 4;
+
+struct WeatherDaysCardRef {
+  lv_obj_t *btn = nullptr;
+  lv_obj_t *root = nullptr;
+  lv_obj_t *current_icon = nullptr;
+  lv_obj_t *current_temp = nullptr;
+  lv_obj_t *current_condition = nullptr;
+  lv_obj_t *today_range = nullptr;
+  lv_obj_t *days_row = nullptr;
+  lv_obj_t *columns[espcontrol::WEATHER_DAYS_MAX] = {};
+  lv_obj_t *day_lbls[espcontrol::WEATHER_DAYS_MAX] = {};
+  lv_obj_t *icon_lbls[espcontrol::WEATHER_DAYS_MAX] = {};
+  lv_obj_t *range_lbls[espcontrol::WEATHER_DAYS_MAX] = {};
+  int visible_days = 0;
+  std::string entity_id;
+  bool valid = false;
+  espcontrol::WeatherDaysForecast forecast;
+  std::string current_temp_text;
+  std::string current_temp_unit;
+};
+
+inline WeatherDaysCardRef *weather_days_card_refs() {
+  static WeatherDaysCardRef refs[WEATHER_DAYS_CARDS_MAX];
+  return refs;
+}
+
+inline int &weather_days_card_count() {
+  static int count = 0;
+  return count;
+}
+
 inline void reset_weather_forecast_cards() {
   WeatherForecastCardRef *refs = weather_forecast_card_refs();
   for (int i = 0; i < MAX_GRID_SLOTS + MAX_SUBPAGE_ITEMS; i++) {
     refs[i] = WeatherForecastCardRef();
   }
   weather_forecast_card_count() = 0;
+  WeatherDaysCardRef *days = weather_days_card_refs();
+  for (int i = 0; i < WEATHER_DAYS_CARDS_MAX; i++) {
+    days[i] = WeatherDaysCardRef();
+  }
+  weather_days_card_count() = 0;
 }
 
 constexpr float WEATHER_FORECAST_TEMP_MISSING = 32767.0f;
@@ -297,10 +358,194 @@ inline bool weather_forecast_card_ref_ready(const WeatherForecastCardRef &ref) {
   return true;
 }
 
+// ── Daily Forecast cards ─────────────────────────────────────────────
+
+inline std::string weather_days_temp_text(float value, const std::string &unit) {
+  if (value == espcontrol::WEATHER_DAYS_TEMP_MISSING) return "--";
+  return std::to_string(weather_forecast_display_temp(value, unit)) + "°";
+}
+
+inline std::string weather_days_range_text(float high, float low, const std::string &unit) {
+  const bool has_high = high != espcontrol::WEATHER_DAYS_TEMP_MISSING;
+  const bool has_low = low != espcontrol::WEATHER_DAYS_TEMP_MISSING;
+  if (!has_high && !has_low) return "--/--";
+  if (!has_low) return weather_days_temp_text(high, unit);
+  if (!has_high) return weather_days_temp_text(low, unit);
+  return weather_days_temp_text(high, unit) + "/" + weather_days_temp_text(low, unit);
+}
+
+inline bool weather_days_card_ref_ready(const WeatherDaysCardRef &ref) {
+  if (!esphome::App.is_setup_complete()) return false;
+  if (!lv_display_get_default()) return false;
+  return ref.btn && ref.root && lv_obj_is_valid(ref.btn) && lv_obj_is_valid(ref.root);
+}
+
+inline WeatherDaysCardRef *weather_days_card_for(lv_obj_t *btn) {
+  WeatherDaysCardRef *refs = weather_days_card_refs();
+  for (int i = 0; i < weather_days_card_count(); i++) {
+    if (refs[i].btn == btn) return &refs[i];
+  }
+  return nullptr;
+}
+
+inline bool weather_days_card_registered(lv_obj_t *btn) { return weather_days_card_for(btn) != nullptr; }
+
+inline void apply_weather_days_current_temperature(WeatherDaysCardRef &ref) {
+  float value = 0.0f;
+  const std::string &unit = ref.current_temp_unit.empty() ? ref.forecast.unit : ref.current_temp_unit;
+  const std::string text = espcontrol::weather_days_parse_temp(ref.current_temp_text, value)
+    ? weather_days_temp_text(value, unit)
+    : std::string("--");
+  lv_label_set_display_text(ref.current_temp, text.c_str());
+}
+
+inline void apply_weather_days_card_text(WeatherDaysCardRef &ref) {
+  const espcontrol::WeatherDaysForecast &forecast = ref.forecast;
+  const std::string today = ref.valid
+    ? weather_days_range_text(forecast.today_high, forecast.today_low, forecast.unit)
+    : std::string("--/--");
+  lv_label_set_display_text(ref.today_range, today.c_str());
+  for (int i = 0; i < espcontrol::WEATHER_DAYS_MAX; i++) {
+    const bool has_day = ref.valid && i < forecast.day_count;
+    const espcontrol::WeatherDay &day = forecast.days[i];
+    const std::string name = has_day
+      ? espcontrol_i18n(std::string(espcontrol::weather_weekday_short_name(day.weekday)))
+      : std::string("--");
+    const std::string range = has_day
+      ? weather_days_range_text(day.high, day.low, forecast.unit)
+      : std::string("--/--");
+    lv_label_set_display_text(ref.day_lbls[i], name.c_str());
+    lv_label_set_display_text(ref.icon_lbls[i],
+      has_day ? weather_icon_for_state(day.condition) : find_icon("Weather Sunny Off"));
+    lv_label_set_display_text(ref.range_lbls[i], range.c_str());
+  }
+  apply_weather_days_current_temperature(ref);
+}
+
+inline bool refresh_weather_days_card_visuals() {
+  WeatherDaysCardRef *refs = weather_days_card_refs();
+  bool updated = false;
+  for (int i = 0; i < weather_days_card_count(); i++) {
+    if (!weather_days_card_ref_ready(refs[i])) continue;
+    apply_weather_days_card_text(refs[i]);
+    updated = true;
+  }
+  return updated;
+}
+
+inline lv_obj_t *weather_days_box(lv_obj_t *parent, lv_flex_flow_t flow) {
+  lv_obj_t *box = lv_obj_create(parent);
+  lv_obj_set_size(box, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+  lv_obj_set_style_bg_opa(box, LV_OPA_TRANSP, LV_PART_MAIN);
+  lv_obj_set_style_border_width(box, 0, LV_PART_MAIN);
+  lv_obj_set_style_pad_all(box, 0, LV_PART_MAIN);
+  lv_obj_set_style_pad_gap(box, 0, LV_PART_MAIN);
+  lv_obj_clear_flag(box, LV_OBJ_FLAG_CLICKABLE);
+  lv_obj_clear_flag(box, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_flex_flow(box, flow);
+  lv_obj_set_flex_align(box, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+  return box;
+}
+
+inline lv_obj_t *weather_days_label(lv_obj_t *parent, const lv_font_t *font) {
+  lv_obj_t *label = lv_label_create(parent);
+  if (font) lv_obj_set_style_text_font(label, font, LV_PART_MAIN);
+  lv_label_set_display_text(label, "");
+  return label;
+}
+
+// Builds the strip inside the card: current conditions on the left, then one
+// column per forecast day. Columns are shown by weather_days_card_set_columns.
+inline bool register_weather_days_card(lv_obj_t *btn, const WeatherDaysCardFonts &fonts,
+                                       const std::string &entity_id) {
+  int &count = weather_days_card_count();
+  if (count >= WEATHER_DAYS_CARDS_MAX) {
+    ESP_LOGW("weather_forecast", "Too many Daily Forecast cards; showing current weather only");
+    return false;
+  }
+  WeatherDaysCardRef &ref = weather_days_card_refs()[count++];
+  ref = WeatherDaysCardRef();
+  ref.btn = btn;
+  ref.entity_id = entity_id;
+
+  ref.root = weather_days_box(btn, LV_FLEX_FLOW_ROW);
+  lv_obj_set_size(ref.root, lv_pct(100), lv_pct(100));
+  lv_obj_center(ref.root);
+  lv_obj_set_style_pad_column(ref.root, 12, LV_PART_MAIN);
+
+  lv_obj_t *current = weather_days_box(ref.root, LV_FLEX_FLOW_COLUMN);
+  lv_obj_set_flex_align(current, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+  lv_obj_t *now_row = weather_days_box(current, LV_FLEX_FLOW_ROW);
+  lv_obj_set_style_pad_column(now_row, 8, LV_PART_MAIN);
+  ref.current_icon = weather_days_label(now_row, fonts.icon);
+  ref.current_temp = weather_days_label(now_row, fonts.value);
+  ref.current_condition = weather_days_label(current, fonts.text);
+  ref.today_range = weather_days_label(current, fonts.text);
+  lv_obj_set_style_text_opa(ref.today_range, LV_OPA_70, LV_PART_MAIN);
+  lv_label_set_display_text(ref.current_icon, find_icon("Weather Cloudy"));
+
+  ref.days_row = weather_days_box(ref.root, LV_FLEX_FLOW_ROW);
+  lv_obj_set_height(ref.days_row, lv_pct(100));
+  lv_obj_set_flex_grow(ref.days_row, 1);
+  lv_obj_set_flex_align(ref.days_row, LV_FLEX_ALIGN_SPACE_EVENLY, LV_FLEX_ALIGN_CENTER,
+                        LV_FLEX_ALIGN_CENTER);
+  for (int i = 0; i < espcontrol::WEATHER_DAYS_MAX; i++) {
+    ref.columns[i] = weather_days_box(ref.days_row, LV_FLEX_FLOW_COLUMN);
+    ref.day_lbls[i] = weather_days_label(ref.columns[i], fonts.text);
+    lv_obj_set_style_text_opa(ref.day_lbls[i], LV_OPA_80, LV_PART_MAIN);
+    ref.icon_lbls[i] = weather_days_label(ref.columns[i], fonts.icon);
+    ref.range_lbls[i] = weather_days_label(ref.columns[i], fonts.text);
+    lv_obj_add_flag(ref.columns[i], LV_OBJ_FLAG_HIDDEN);
+  }
+  apply_weather_days_card_text(ref);
+  return true;
+}
+
+inline void weather_days_card_set_columns(lv_obj_t *btn, int col_span) {
+  WeatherDaysCardRef *ref = weather_days_card_for(btn);
+  // Layout runs while the grid is built, which can be before setup completes.
+  if (!ref || !ref->root || !lv_obj_is_valid(ref->root)) return;
+  ref->visible_days = espcontrol::weather_days_visible_for_columns(col_span);
+  for (int i = 0; i < espcontrol::WEATHER_DAYS_MAX; i++) {
+    if (i < ref->visible_days) lv_obj_clear_flag(ref->columns[i], LV_OBJ_FLAG_HIDDEN);
+    else lv_obj_add_flag(ref->columns[i], LV_OBJ_FLAG_HIDDEN);
+  }
+  // A single-column card shows only the current conditions, centred.
+  if (ref->visible_days == 0) lv_obj_add_flag(ref->days_row, LV_OBJ_FLAG_HIDDEN);
+  else lv_obj_clear_flag(ref->days_row, LV_OBJ_FLAG_HIDDEN);
+  lv_obj_set_flex_align(ref->root,
+                        ref->visible_days == 0 ? LV_FLEX_ALIGN_CENTER : LV_FLEX_ALIGN_START,
+                        LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+}
+
+inline void weather_days_set_current_state(lv_obj_t *btn, const std::string &state) {
+  WeatherDaysCardRef *ref = weather_days_card_for(btn);
+  if (!ref || !weather_days_card_ref_ready(*ref)) return;
+  lv_label_set_display_text(ref->current_icon, weather_icon_for_state(state));
+  lv_label_set_display_text(ref->current_condition, weather_label_for_state(state).c_str());
+  notify_dashboard_content_changed();
+}
+
+inline void weather_days_set_current_temperature(lv_obj_t *btn, const std::string &value) {
+  WeatherDaysCardRef *ref = weather_days_card_for(btn);
+  if (!ref || !weather_days_card_ref_ready(*ref)) return;
+  ref->current_temp_text = value;
+  apply_weather_days_current_temperature(*ref);
+  notify_dashboard_content_changed();
+}
+
+inline void weather_days_set_current_unit(lv_obj_t *btn, const std::string &unit) {
+  WeatherDaysCardRef *ref = weather_days_card_for(btn);
+  if (!ref || !weather_days_card_ref_ready(*ref)) return;
+  ref->current_temp_unit = unit;
+  apply_weather_days_current_temperature(*ref);
+  notify_dashboard_content_changed();
+}
+
 inline void refresh_weather_forecast_card_visuals() {
   WeatherForecastCardRef *refs = weather_forecast_card_refs();
   int count = weather_forecast_card_count();
-  bool updated = false;
+  bool updated = refresh_weather_days_card_visuals();
   for (int i = 0; i < count; i++) {
     if (!weather_forecast_card_ref_ready(refs[i])) continue;
     apply_weather_forecast_card_text(refs[i], refs[i].valid, refs[i].high,
@@ -365,6 +610,34 @@ inline void apply_weather_forecast_unavailable_for_entity(const std::string &ent
   }
 }
 
+inline void apply_weather_days_to_entity(const std::string &entity_id, bool valid,
+                                         const espcontrol::WeatherDaysForecast &forecast) {
+  ESP_LOGI("weather_forecast", "Applying daily forecast for %s: %s, %d days",
+    entity_id.c_str(), valid ? "valid" : "unavailable", forecast.day_count);
+  WeatherDaysCardRef *refs = weather_days_card_refs();
+  for (int i = 0; i < weather_days_card_count(); i++) {
+    if (refs[i].entity_id != entity_id) continue;
+    refs[i].valid = valid;
+    if (valid) refs[i].forecast = forecast;
+    weather_forecast_schedule_visual_refresh();
+  }
+}
+
+inline void apply_weather_days_unavailable_for_entity(const std::string &entity_id) {
+  WeatherDaysCardRef *refs = weather_days_card_refs();
+  for (int i = 0; i < weather_days_card_count(); i++) {
+    if (refs[i].entity_id != entity_id) continue;
+    refs[i].valid = false;
+    weather_forecast_schedule_visual_refresh();
+  }
+}
+
+// Marks the cards that were waiting on a failed request as unavailable.
+inline void weather_forecast_mark_unavailable(const std::string &entity_id, const std::string &day) {
+  if (day == "days") apply_weather_days_unavailable_for_entity(entity_id);
+  else apply_weather_forecast_unavailable_for_entity(entity_id);
+}
+
 inline void apply_weather_forecast_unavailable_all() {
   ESP_LOGW("weather_forecast", "Marking all forecast cards unavailable");
   WeatherForecastCardRef *refs = weather_forecast_card_refs();
@@ -375,6 +648,11 @@ inline void apply_weather_forecast_unavailable_all() {
     refs[i].low = 0;
     refs[i].source_unit = "";
     refs[i].status_label = "";
+    weather_forecast_schedule_visual_refresh();
+  }
+  WeatherDaysCardRef *days = weather_days_card_refs();
+  for (int i = 0; i < weather_days_card_count(); i++) {
+    days[i].valid = false;
     weather_forecast_schedule_visual_refresh();
   }
 }
@@ -759,7 +1037,7 @@ inline void request_weather_forecast_entity(const std::string &entity_id,
   if (!weather_forecast_entity_id_safe(entity_id) ||
       !ha_api_state_connected() ||
       !weather_forecast_actions_ready()) {
-    apply_weather_forecast_unavailable_for_entity(entity_id);
+    weather_forecast_mark_unavailable(entity_id, day);
     return;
   }
 #ifdef ESP_PLATFORM
@@ -778,12 +1056,15 @@ inline void request_weather_forecast_entity(const std::string &entity_id,
   esphome::api::HomeassistantActionRequest req;
   uint32_t call_id = next_weather_forecast_call_id();
   if (!ha_action_begin(req, "weather.get_forecasts", false, 2, call_id)) {
-    apply_weather_forecast_unavailable_for_entity(entity_id);
+    weather_forecast_mark_unavailable(entity_id, day);
     weather_forecast_schedule_retry(entity_id, day, "request setup failed");
     return;
   }
   req.wants_response = true;
-  std::string response_template = weather_forecast_response_template(entity_id);
+  const bool daily_strip = day == "days";
+  std::string response_template = daily_strip
+    ? espcontrol::weather_days_response_template(entity_id)
+    : weather_forecast_response_template(entity_id);
   req.response_template = decltype(req.response_template)(response_template);
   ha_action_add_entity(req, entity_id);
   ha_action_add_data(req, "type", "daily");
@@ -801,10 +1082,10 @@ inline void request_weather_forecast_entity(const std::string &entity_id,
         std::string error_message = response.get_error_message();
         ESP_LOGW("weather_forecast", "Forecast request failed for %s: %s",
           entity_id.c_str(), error_message.c_str());
-        if (weather_forecast_error_is_timeout(error_message)) {
+        if (weather_forecast_error_is_timeout(error_message) && day != "days") {
           apply_weather_forecast_actions_required_for_entity(entity_id);
         } else {
-          apply_weather_forecast_unavailable_for_entity(entity_id);
+          weather_forecast_mark_unavailable(entity_id, day);
         }
         weather_forecast_schedule_retry(entity_id, day, error_message.c_str());
         weather_forecast_send_next_queued();
@@ -815,8 +1096,19 @@ inline void request_weather_forecast_entity(const std::string &entity_id,
       if (payload == nullptr) {
         ESP_LOGW("weather_forecast", "Forecast response for %s did not include a rendered payload",
           entity_id.c_str());
-        apply_weather_forecast_unavailable_for_entity(entity_id);
+        weather_forecast_mark_unavailable(entity_id, day);
         weather_forecast_schedule_retry(entity_id, day, "empty response");
+        weather_forecast_send_next_queued();
+        return;
+      }
+      if (day == "days") {
+        espcontrol::WeatherDaysForecast days_forecast;
+        const bool days_valid = espcontrol::parse_weather_days_payload(payload, days_forecast);
+        if (!days_valid) {
+          ESP_LOGW("weather_forecast", "No usable daily forecast for %s: %s", entity_id.c_str(), payload);
+          weather_forecast_schedule_retry(entity_id, day, "no usable daily forecast");
+        }
+        apply_weather_days_to_entity(entity_id, days_valid, days_forecast);
         weather_forecast_send_next_queued();
         return;
       }
@@ -833,20 +1125,21 @@ inline void request_weather_forecast_entity(const std::string &entity_id,
         forecast.tomorrow_high, forecast.tomorrow_low, forecast.unit);
       weather_forecast_send_next_queued();
     })) {
-    apply_weather_forecast_unavailable_for_entity(entity_id);
+    weather_forecast_mark_unavailable(entity_id, day);
     weather_forecast_schedule_retry(entity_id, day, "callback setup failed");
     return;
   }
   if (!weather_forecast_track_pending(req.call_id, entity_id, day)) {
     ha_cancel_action_response_callback(req.call_id, "too many pending forecasts");
-    apply_weather_forecast_unavailable_for_entity(entity_id);
+    weather_forecast_mark_unavailable(entity_id, day);
     return;
   }
-  ESP_LOGI("weather_forecast", "Requesting daily forecast for %s", entity_id.c_str());
+  ESP_LOGI("weather_forecast", "Requesting daily forecast for %s%s", entity_id.c_str(),
+    daily_strip ? " (daily forecast card)" : "");
   if (!ha_action_send(req)) {
     weather_forecast_clear_pending(req.call_id);
     ha_cancel_action_response_callback(req.call_id, "send failed");
-    apply_weather_forecast_unavailable_for_entity(entity_id);
+    weather_forecast_mark_unavailable(entity_id, day);
     weather_forecast_schedule_retry(entity_id, day, "send failed");
     weather_forecast_send_next_queued();
   }
@@ -864,7 +1157,9 @@ inline void weather_forecast_send_next_queued() {
 inline void refresh_weather_forecast_cards() {
   WeatherForecastCardRef *refs = weather_forecast_card_refs();
   int count = weather_forecast_card_count();
-  if (count <= 0) return;
+  WeatherDaysCardRef *days = weather_days_card_refs();
+  int days_count = weather_days_card_count();
+  if (count <= 0 && days_count <= 0) return;
   std::vector<std::string> requested;
   requested.reserve(count);
   for (int i = 0; i < count; i++) {
@@ -881,6 +1176,12 @@ inline void refresh_weather_forecast_cards() {
     if (already_requested) continue;
     requested.push_back(request_key);
     weather_forecast_enqueue(entity_id, "");
+  }
+  for (int i = 0; i < days_count; i++) {
+    const std::string &entity_id = days[i].entity_id;
+    if (entity_id.empty()) continue;
+    // weather_forecast_enqueue ignores an entity that is already queued.
+    weather_forecast_enqueue(entity_id, "days");
   }
   weather_forecast_send_next_queued();
 }

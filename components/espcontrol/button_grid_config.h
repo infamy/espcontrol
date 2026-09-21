@@ -64,6 +64,7 @@ inline void set_card_checked_state(lv_obj_t *btn, bool checked);
 
 #include "button_grid_config_parser.h"
 
+#include "weather_days_forecast.h"
 #include "button_grid_weather_forecast.h"
 
 struct ClimateControlCtx;

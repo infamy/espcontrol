@@ -580,6 +580,17 @@ inline bool card_runtime_weather_forecast_precision(const std::string &precision
   return card_contract_weather_forecast_precision(precision);
 }
 
+// Saved weather modes beyond current conditions need Home Assistant forecasts.
+inline bool card_runtime_weather_mode_valid(const std::string &mode) {
+  if (mode.empty()) return true;
+  if (!card_runtime_weather_forecast_supported()) return false;
+  return card_contract_weather_mode_valid(mode);
+}
+
+inline bool card_runtime_weather_days_mode(const std::string &mode) {
+  return mode == "days" && card_runtime_weather_mode_valid(mode);
+}
+
 inline std::string card_runtime_vacuum_mode(const std::string &mode) {
   if (mode == "status" || mode == "start_stop" || mode == "start_dock" || mode == "dock" ||
       mode == "pause_resume" || mode == "clean_spot" || mode == "locate" ||

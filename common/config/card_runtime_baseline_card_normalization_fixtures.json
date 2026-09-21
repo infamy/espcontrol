@@ -1275,6 +1275,21 @@
     }
   },
   {
+    "name": "weather: days",
+    "input": "~weather.example,,Auto,Auto,,,weather,days,",
+    "expected": {
+      "entity": "weather.example",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "weather",
+      "precision": "days",
+      "options": ""
+    }
+  },
+  {
     "name": "image: image",
     "input": "~camera.example,,Auto,Auto,,,image,,",
     "expected": {

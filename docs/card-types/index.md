@@ -35,7 +35,7 @@ Use this page when you know what you want the panel to do but are not sure which
 | Start, cancel, or resume a countdown | [Timer](/card-types/timers) | `timer` |
 | Show local date, time, or date and time | [Date & Time](/card-types/calendar) | No entity required for clock modes |
 | Show another city or timezone | [World Clock](/card-types/timezones) | No entity required |
-| Show current weather or daily high/low temperatures | [Weather](/card-types/weather) | `weather` |
+| Show current weather, daily high/low temperatures, or a multi-day forecast | [Weather](/card-types/weather) | `weather` |
 | Show a still image from Home Assistant | [Camera](/card-types/cameras) | `camera` or `image` |
 | Let visitors scan guest Wifi details | [Wifi Sharing](/card-types/wifi-share) | No entity required |
 | Control media playback, volume, progress, or now-playing display | [Media](/card-types/media) | `media_player` |

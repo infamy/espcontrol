@@ -45,6 +45,21 @@
     }
   },
   {
+    "name": "daily forecast keeps its mode and drops large numbers",
+    "input": "weather.home;;Auto;Auto;ignored;unit;weather;days;large_numbers",
+    "expected": {
+      "entity": "weather.home",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "unit",
+      "type": "weather",
+      "precision": "days",
+      "options": ""
+    }
+  },
+  {
     "name": "legacy forecast card migrates to tomorrow",
     "input": "weather.home;Weather;Auto;Auto;ignored;unit;weather_forecast;bad;large_numbers",
     "expected": {

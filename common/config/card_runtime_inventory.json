@@ -338,7 +338,8 @@
       "modes": [
         { "name": "current", "config": { "entity": "weather.example", "precision": "" } },
         { "name": "today", "config": { "entity": "weather.example", "precision": "today" }, "lifecycle": { "subscriptions": ["state", "attributes", "action_response"], "actions": ["none"], "modalOwner": "none" } },
-        { "name": "tomorrow", "config": { "entity": "weather.example", "precision": "tomorrow" }, "lifecycle": { "subscriptions": ["state", "attributes", "action_response"], "actions": ["none"], "modalOwner": "none" } }
+        { "name": "tomorrow", "config": { "entity": "weather.example", "precision": "tomorrow" }, "lifecycle": { "subscriptions": ["state", "attributes", "action_response"], "actions": ["none"], "modalOwner": "none" } },
+        { "name": "days", "config": { "entity": "weather.example", "precision": "days" }, "lifecycle": { "subscriptions": ["state", "attributes", "action_response"], "actions": ["none"], "modalOwner": "none" } }
       ]
     },
     "image": {

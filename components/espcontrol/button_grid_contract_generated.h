@@ -294,6 +294,7 @@ inline const char *const CARD_CONTRACT_CLIMATE_NUMBER_DISPLAY_MODES[] = {"icon",
 inline const char *const CARD_CONTRACT_CLIMATE_TEMPERATURE_STEPS[] = {"1", "0.5"};
 inline const char *const CARD_CONTRACT_CLIMATE_PRECISION_VALUES[] = {"", "1", "2", "3"};
 inline const char *const CARD_CONTRACT_WEATHER_FORECAST_PRECISIONS[] = {"today", "tomorrow"};
+inline const char *const CARD_CONTRACT_WEATHER_MODES[] = {"", "today", "tomorrow", "days"};
 constexpr const char *CARD_CONTRACT_OPTION_NAME_ACTIONS = "actions";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_ACTIVE_COLOR = "active_color";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_ALARM_CARD_TYPE = "alarm_card_type";
@@ -506,6 +507,11 @@ inline bool card_contract_climate_precision_valid(const std::string &precision) 
 inline bool card_contract_weather_forecast_precision(const std::string &precision) {
   return card_contract_string_in(precision, CARD_CONTRACT_WEATHER_FORECAST_PRECISIONS,
     sizeof(CARD_CONTRACT_WEATHER_FORECAST_PRECISIONS) / sizeof(CARD_CONTRACT_WEATHER_FORECAST_PRECISIONS[0]));
+}
+
+inline bool card_contract_weather_mode_valid(const std::string &mode) {
+  return card_contract_string_in(mode, CARD_CONTRACT_WEATHER_MODES,
+    sizeof(CARD_CONTRACT_WEATHER_MODES) / sizeof(CARD_CONTRACT_WEATHER_MODES[0]));
 }
 
 inline const char *card_contract_cover_command_service(const std::string &mode) {

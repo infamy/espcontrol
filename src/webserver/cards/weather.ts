@@ -7,8 +7,9 @@ import {
     cardContractHidden,
     cardContractPickerKey,
 } from "../generated/card_contract";
+import { CARD_SIZE_SINGLE, sizeColSpan } from "../model/grid";
 import type { CardRegistry, CardUiServices } from "../application/card_registry";
-import type { ConfigWeatherOptionsFeature } from "../application/config_weather_options";
+import { weatherDaysVisibleForColumns, type ConfigWeatherOptionsFeature } from "../application/config_weather_options";
 import type { ClockBarFeature } from "../application/clock_bar_state";
 import type { ControlsFieldsFeature } from "../application/controls_fields";
 
@@ -29,6 +30,7 @@ export function registerWeatherCardTypes(
     const { temperatureUnitSymbol } = clockBar;
     const {
         weatherCardDefaultForecastLabel,
+        weatherCardIsDaysMode,
         weatherCardIsForecastMode,
         weatherModeOptions,
         normalizeWeatherCardMode,
@@ -74,6 +76,32 @@ export function registerWeatherCardTypes(
             currentBadge: "weather-cloudy",
         },
     };
+    // Sample days for the Daily Forecast preview.
+    const PREVIEW_DAYS: readonly [string, string, string][] = [
+        ["Tue", "weather-sunny", "17\u00B0/14\u00B0"],
+        ["Wed", "weather-partly-cloudy", "17\u00B0/14\u00B0"],
+        ["Thu", "weather-cloudy", "15\u00B0/14\u00B0"],
+        ["Fri", "weather-partly-cloudy", "15\u00B0/14\u00B0"],
+        ["Sat", "weather-rainy", "14\u00B0/11\u00B0"],
+        ["Sun", "weather-pouring", "13\u00B0/10\u00B0"],
+    ];
+    function dailyForecastPreviewHtml(this: any, cardSize?: any) {
+        const days = weatherDaysVisibleForColumns(sizeColSpan(cardSize || CARD_SIZE_SINGLE));
+        const columns = PREVIEW_DAYS.slice(0, days).map(function (day) {
+            return '<div class="sp-weather-days-col">' +
+                '<span class="sp-weather-days-text sp-weather-days-dim">' + day[0] + '</span>' +
+                '<span class="sp-weather-days-icon mdi mdi-' + day[1] + '"></span>' +
+                '<span class="sp-weather-days-text">' + day[2] + '</span></div>';
+        }).join("");
+        return '<div class="sp-weather-days' + (days ? "" : " sp-weather-days-single") + '">' +
+            '<div class="sp-weather-days-now">' +
+            '<div class="sp-weather-days-now-row"><span class="sp-weather-days-icon mdi mdi-weather-cloudy"></span>' +
+            '<span class="sp-weather-days-temp">16\u00B0</span></div>' +
+            '<span class="sp-weather-days-text">Cloudy</span>' +
+            '<span class="sp-weather-days-text sp-weather-days-dim">17\u00B0/13\u00B0</span></div>' +
+            (days ? '<div class="sp-weather-days-list">' + columns + '</div>' : "") +
+            '</div>';
+    }
     registry.register("weather", {
         label: function (this: any) { return cardContractCardLabel("weather"); },
         allowInSubpage: function (this: any) { return cardContractAllowInSubpage("weather"); },
@@ -102,6 +130,13 @@ export function registerWeatherCardTypes(
             helpers.renderCardLargeNumbersToggle(panel, b, helpers, WEATHER_CARD_METADATA);
         },
         renderPreview: function (this: any, b?: any, helpers?: any) {
+            if (weatherCardIsDaysMode(b)) {
+                return {
+                    buttonClass: "sp-weather-days-card",
+                    iconHtml: dailyForecastPreviewHtml(helpers && helpers.cardSize),
+                    labelHtml: "",
+                };
+            }
             if (weatherCardIsForecastMode(b)) {
                 var defaultLabel: any = weatherCardDefaultForecastLabel(b);
                 var label: any = b.label || defaultLabel;

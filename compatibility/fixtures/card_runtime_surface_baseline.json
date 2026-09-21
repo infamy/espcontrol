@@ -2680,6 +2680,39 @@
       }
     },
     {
+      "name": "weather: days",
+      "sourceKind": "contract",
+      "sourceType": "weather",
+      "mode": "days",
+      "canonicalType": "weather",
+      "web": {
+        "registration": "weather",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": true
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "1785928d62b4ed27"
+        }
+      },
+      "firmware": {
+        "family": "WEATHER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes",
+          "action_response"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
       "name": "image: image",
       "sourceKind": "contract",
       "sourceType": "image",

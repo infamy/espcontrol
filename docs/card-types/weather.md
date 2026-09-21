@@ -1,12 +1,12 @@
 ---
 title: Weather Cards
 description:
-  How to show current Home Assistant weather conditions or daily high / low temperatures on your EspControl panel.
+  How to show current Home Assistant weather conditions, daily high / low temperatures, or a multi-day forecast on your EspControl panel.
 ---
 
 # Weather
 
-A weather card displays weather information from a Home Assistant weather entity. It can show either the current condition, such as **Sunny**, **Cloudy**, or **Rainy**, or the high / low temperatures for today or tomorrow, such as **18/10°C**.
+A weather card displays weather information from a Home Assistant weather entity. It can show the current condition, such as **Sunny**, **Cloudy**, or **Rainy**, the high / low temperatures for today or tomorrow, such as **18/10°C**, or a daily forecast for the coming days.
 
 Weather cards are read-only — tapping them does nothing.
 
@@ -22,6 +22,7 @@ Older cards that were created as **Weather Forecast** cards still work. They now
    - **Current Conditions** shows the live weather condition icon and label.
    - **Temperatures Today** shows today's high / low temperature.
    - **Temperatures Tomorrow** shows tomorrow's high / low temperature.
+   - **Daily Forecast** shows the current conditions and temperature with today's high / low, followed by the coming days. See [Daily Forecast](#daily-forecast).
 4. For temperature displays, optionally enter a **Label** to override the default card label.
 5. On a **Large** card, turn on **Large Temperature Numbers** if you want the high / low reading scaled much larger.
 
@@ -37,8 +38,26 @@ Older cards that were created as **Weather Forecast** cards still work. They now
 - The card uses the fixed **tertiary** background colour, like Sensor, Date, Clock, and World Clock cards.
 
 ::: tip Home Assistant actions permission
-The temperature displays need the same **Allow the device to perform Home Assistant actions** setting as control cards. EspControl uses that permission to request forecast data from Home Assistant.
+The temperature and Daily Forecast displays need the same **Allow the device to perform Home Assistant actions** setting as control cards. EspControl uses that permission to request forecast data from Home Assistant.
 :::
+
+## Daily Forecast
+
+**Daily Forecast** is designed for wide cards. The left side shows the current condition icon, the current temperature, the condition name, and today's high / low. The rest of the card shows one column per day, each with the day name, a condition icon, and the high / low.
+
+The number of days follows the card width:
+
+| Card size | Days shown |
+|---|---|
+| Single, Tall, or Extra Tall | Current conditions only |
+| Wide or Large | 2 |
+| Extra Wide | 4 |
+| Ultra Wide | 6 |
+
+- The current conditions and temperature update as soon as Home Assistant reports a change. The daily forecast is requested when the panel connects and then every hour.
+- Day names follow the panel language, and temperatures follow the panel's **Temperature Unit** setting.
+- Up to four Daily Forecast cards can be used at once. Any others show the current conditions only.
+- Daily Forecast is not available on the 4-inch ESP32-S3 panel, which also has no temperature forecast displays.
 
 ## Supported Conditions
 

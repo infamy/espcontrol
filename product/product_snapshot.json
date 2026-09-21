@@ -5718,7 +5718,8 @@
             "values": [
               "",
               "today",
-              "tomorrow"
+              "tomorrow",
+              "days"
             ],
             "defaultValue": "",
             "storageField": "precision",

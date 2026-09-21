@@ -17,6 +17,34 @@ inline bool weather_driver_shows_forecast(const ParsedCfg &config) {
       card_runtime_weather_forecast_precision(config.precision)));
 }
 
+inline bool weather_driver_shows_days(const ParsedCfg &config) {
+  return config.type == "weather" && card_runtime_weather_days_mode(config.precision);
+}
+
+// Current conditions for the Daily Forecast layout. Forecast days arrive
+// through the shared forecast request queue.
+inline void weather_driver_subscribe_days(lv_obj_t *btn, const std::string &entity_id) {
+  const uint32_t generation = ha_subscription_generation();
+  ha_subscribe_state(
+    entity_id,
+    std::function<void(esphome::StringRef)>([btn, generation](esphome::StringRef state) {
+      if (generation != ha_subscription_generation()) return;
+      weather_days_set_current_state(btn, string_ref_limited(state, HA_SHORT_STATE_MAX_LEN));
+    }));
+  ha_subscribe_attribute(
+    entity_id, "temperature",
+    std::function<void(esphome::StringRef)>([btn, generation](esphome::StringRef value) {
+      if (generation != ha_subscription_generation()) return;
+      weather_days_set_current_temperature(btn, string_ref_limited(value, HA_SHORT_STATE_MAX_LEN));
+    }));
+  ha_subscribe_attribute(
+    entity_id, "temperature_unit",
+    std::function<void(esphome::StringRef)>([btn, generation](esphome::StringRef value) {
+      if (generation != ha_subscription_generation()) return;
+      weather_days_set_current_unit(btn, string_ref_limited(value, HA_SHORT_STATE_MAX_LEN));
+    }));
+}
+
 inline std::string weather_driver_forecast_day(const ParsedCfg &config) {
   return config.precision == "today" ? "today" : "tomorrow";
 }
@@ -36,6 +64,20 @@ inline bool weather_driver_setup_visual(
   if (!weather_driver_matches(context)) return false;
   weather_driver_apply_background(slot, palette);
   lv_obj_clear_flag(slot.btn, LV_OBJ_FLAG_CLICKABLE);
+
+  if (weather_driver_shows_days(config)) {
+    WeatherDaysCardFonts fonts;
+    fonts.icon = lv_obj_get_style_text_font(slot.icon_lbl, LV_PART_MAIN);
+    fonts.value = lv_obj_get_style_text_font(slot.sensor_lbl, LV_PART_MAIN);
+    fonts.text = lv_obj_get_style_text_font(slot.text_lbl, LV_PART_MAIN);
+    if (register_weather_days_card(slot.btn, fonts, config.entity)) {
+      lv_obj_add_flag(slot.icon_lbl, LV_OBJ_FLAG_HIDDEN);
+      lv_obj_add_flag(slot.sensor_container, LV_OBJ_FLAG_HIDDEN);
+      lv_label_set_display_text(slot.text_lbl, "");
+      return true;
+    }
+    // Over the Daily Forecast card limit: show current conditions instead.
+  }
 
   if (weather_driver_shows_forecast(config)) {
     lv_obj_add_flag(slot.icon_lbl, LV_OBJ_FLAG_HIDDEN);
@@ -77,6 +119,10 @@ inline bool weather_driver_bind_data(
     BtnSlot &slot, const ParsedCfg &config, const Context &context) {
   if (!weather_driver_matches(context)) return false;
   if (weather_driver_shows_forecast(config)) return true;
+  if (weather_driver_shows_days(config) && weather_days_card_registered(slot.btn)) {
+    if (!config.entity.empty()) weather_driver_subscribe_days(slot.btn, config.entity);
+    return true;
+  }
   if (!config.entity.empty()) {
     subscribe_weather_state(slot.icon_lbl, slot.text_lbl, config.entity);
   }
@@ -87,6 +133,10 @@ inline bool weather_driver_refresh_layout(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
     const DisplayProfile &display, int row_span, int col_span) {
   if (!weather_driver_matches(context)) return false;
+  if (weather_driver_shows_days(config)) {
+    weather_days_card_set_columns(slot.btn, col_span);
+    return true;
+  }
   if (weather_driver_shows_forecast(config) &&
       large_number_square_card_layout(row_span, col_span) &&
       card_large_numbers_active_for_layout(config, row_span, col_span) &&

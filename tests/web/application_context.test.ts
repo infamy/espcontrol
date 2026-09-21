@@ -3,7 +3,7 @@ import {
   createApplicationLayoutState,
 } from "../../src/webserver/application/application_context";
 import { createCardRegistry } from "../../src/webserver/application/card_registry";
-import { createConfigWeatherOptionsFeature } from "../../src/webserver/application/config_weather_options";
+import { createConfigWeatherOptionsFeature, weatherDaysVisibleForColumns } from "../../src/webserver/application/config_weather_options";
 import { createConfigWebhookOptionsFeature } from "../../src/webserver/application/config_webhook_options";
 import { createConfigInternalRelayOptionsFeature } from "../../src/webserver/application/config_internal_relay_options";
 import { createConfigRobotCardOptionsFeature } from "../../src/webserver/application/config_robot_card_options";
@@ -270,8 +270,16 @@ export function runApplicationContextTests(): void {
   equal(weatherOptions.normalizeWeatherCardMode("invalid"), "", "weather options reject unknown modes");
   equal(weatherOptions.weatherCardDefaultForecastLabel({ precision: "today" }), "Today", "weather options label today's forecast");
   equal(weatherOptions.weatherCardDefaultForecastLabel({ precision: "tomorrow" }), "Tomorrow", "weather options label tomorrow's forecast");
+  equal(weatherOptions.normalizeWeatherCardMode("days"), "days", "weather options preserve the daily forecast mode");
+  equal(weatherOptions.weatherCardIsDaysMode({ precision: "days" }), true, "weather options recognise the daily forecast mode");
+  equal(weatherOptions.weatherCardIsForecastMode({ precision: "days" }), false, "daily forecast has no large numbers or label controls");
+  equal(weatherOptions.weatherModeOptions().map((option: any) => option[0]).join(","), ",today,tomorrow,days",
+    "weather options list the daily forecast mode last");
+  equal([1, 2, 3, 4, 5].map(weatherDaysVisibleForColumns).join(","), "0,2,4,5,6",
+    "daily forecast shows more days as the card widens");
   const currentOnlyWeather = createConfigWeatherOptionsFeature({ ...profile, disabledCardTypes: ["weather_forecast"] });
   equal(currentOnlyWeather.normalizeWeatherCardMode("tomorrow"), "", "disabled forecast support normalizes to current conditions");
+  equal(currentOnlyWeather.normalizeWeatherCardMode("days"), "", "disabled forecast support also hides the daily forecast");
   equal(currentOnlyWeather.weatherCardIsForecastMode({ precision: "tomorrow" }), false, "disabled forecast support hides forecast controls");
 
   const webhookOptions = createConfigWebhookOptionsFeature();

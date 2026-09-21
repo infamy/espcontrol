@@ -365,6 +365,11 @@ add_test(NAME cover_art_activation_test COMMAND
   --compiler ${CMAKE_CXX_COMPILER})
 add_test(NAME presence_transition_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/presence_transition_test.py)
+add_executable(weather_days_forecast_test weather_days_forecast_test.cpp)
+target_compile_features(weather_days_forecast_test PRIVATE cxx_std_17)
+target_compile_options(weather_days_forecast_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(weather_days_forecast_test PRIVATE ../../components/espcontrol)
+add_test(NAME weather_days_forecast_test COMMAND weather_days_forecast_test)
 add_test(NAME ha_reconnect_recovery_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ha_reconnect_recovery_test.py)
 add_test(NAME cover_art_metadata_test COMMAND
