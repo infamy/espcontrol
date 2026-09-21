@@ -435,11 +435,10 @@ inline bool refresh_weather_days_card_visuals() {
 
 inline lv_obj_t *weather_days_box(lv_obj_t *parent, lv_flex_flow_t flow) {
   lv_obj_t *box = lv_obj_create(parent);
+  // Containers created at runtime get LVGL's light default theme, including a
+  // dark text colour. Drop it so the strip inherits the card's own colours.
+  lv_obj_remove_style_all(box);
   lv_obj_set_size(box, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-  lv_obj_set_style_bg_opa(box, LV_OPA_TRANSP, LV_PART_MAIN);
-  lv_obj_set_style_border_width(box, 0, LV_PART_MAIN);
-  lv_obj_set_style_pad_all(box, 0, LV_PART_MAIN);
-  lv_obj_set_style_pad_gap(box, 0, LV_PART_MAIN);
   lv_obj_clear_flag(box, LV_OBJ_FLAG_CLICKABLE);
   lv_obj_clear_flag(box, LV_OBJ_FLAG_SCROLLABLE);
   lv_obj_set_flex_flow(box, flow);
