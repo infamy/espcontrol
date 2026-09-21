@@ -246,7 +246,6 @@ struct WeatherDaysCardRef {
   lv_obj_t *current_temp = nullptr;
   lv_obj_t *current_condition = nullptr;
   lv_obj_t *today_range = nullptr;
-  lv_obj_t *days_row = nullptr;
   lv_obj_t *columns[espcontrol::WEATHER_DAYS_MAX] = {};
   lv_obj_t *day_lbls[espcontrol::WEATHER_DAYS_MAX] = {};
   lv_obj_t *icon_lbls[espcontrol::WEATHER_DAYS_MAX] = {};
@@ -454,7 +453,8 @@ inline lv_obj_t *weather_days_label(lv_obj_t *parent, const lv_font_t *font) {
 }
 
 // Builds the strip inside the card: current conditions on the left, then one
-// column per forecast day. Columns are shown by weather_days_card_set_columns.
+// column per forecast day, spread with equal gaps so both card edges get the
+// same margin. Columns are shown by weather_days_card_set_columns.
 inline bool register_weather_days_card(lv_obj_t *btn, const WeatherDaysCardFonts &fonts,
                                        const std::string &entity_id) {
   int &count = weather_days_card_count();
@@ -471,7 +471,7 @@ inline bool register_weather_days_card(lv_obj_t *btn, const WeatherDaysCardFonts
   lv_obj_set_size(ref.root, lv_pct(100), lv_pct(100));
   lv_obj_center(ref.root);
   lv_obj_set_style_pad_hor(ref.root, 8, LV_PART_MAIN);
-  lv_obj_set_style_pad_column(ref.root, 16, LV_PART_MAIN);
+  lv_obj_set_style_pad_column(ref.root, 12, LV_PART_MAIN);
 
   lv_obj_t *current = weather_days_box(ref.root, LV_FLEX_FLOW_COLUMN);
   lv_obj_set_flex_align(current, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
@@ -485,13 +485,8 @@ inline bool register_weather_days_card(lv_obj_t *btn, const WeatherDaysCardFonts
   lv_obj_set_style_text_opa(ref.today_range, LV_OPA_70, LV_PART_MAIN);
   lv_label_set_display_text(ref.current_icon, find_icon("Weather Cloudy"));
 
-  ref.days_row = weather_days_box(ref.root, LV_FLEX_FLOW_ROW);
-  lv_obj_set_height(ref.days_row, lv_pct(100));
-  lv_obj_set_flex_grow(ref.days_row, 1);
-  lv_obj_set_flex_align(ref.days_row, LV_FLEX_ALIGN_SPACE_EVENLY, LV_FLEX_ALIGN_CENTER,
-                        LV_FLEX_ALIGN_CENTER);
   for (int i = 0; i < espcontrol::WEATHER_DAYS_MAX; i++) {
-    ref.columns[i] = weather_days_box(ref.days_row, LV_FLEX_FLOW_COLUMN);
+    ref.columns[i] = weather_days_box(ref.root, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_style_pad_row(ref.columns[i], 4, LV_PART_MAIN);
     ref.day_lbls[i] = weather_days_label(ref.columns[i], fonts.text);
     lv_obj_set_style_text_opa(ref.day_lbls[i], LV_OPA_80, LV_PART_MAIN);
@@ -513,10 +508,8 @@ inline void weather_days_card_set_columns(lv_obj_t *btn, int col_span) {
     else lv_obj_add_flag(ref->columns[i], LV_OBJ_FLAG_HIDDEN);
   }
   // A single-column card shows only the current conditions, centred.
-  if (ref->visible_days == 0) lv_obj_add_flag(ref->days_row, LV_OBJ_FLAG_HIDDEN);
-  else lv_obj_clear_flag(ref->days_row, LV_OBJ_FLAG_HIDDEN);
   lv_obj_set_flex_align(ref->root,
-                        ref->visible_days == 0 ? LV_FLEX_ALIGN_CENTER : LV_FLEX_ALIGN_START,
+                        ref->visible_days == 0 ? LV_FLEX_ALIGN_CENTER : LV_FLEX_ALIGN_SPACE_BETWEEN,
                         LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 }
 

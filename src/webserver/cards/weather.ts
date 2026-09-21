@@ -99,7 +99,7 @@ export function registerWeatherCardTypes(
             '<span class="sp-weather-days-temp">16\u00B0</span></div>' +
             '<span class="sp-weather-days-text">Cloudy</span>' +
             '<span class="sp-weather-days-text sp-weather-days-dim">17\u00B0/13\u00B0</span></div>' +
-            (days ? '<div class="sp-weather-days-list">' + columns + '</div>' : "") +
+            columns +
             '</div>';
     }
     registry.register("weather", {
