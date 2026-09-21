@@ -35,20 +35,21 @@ void test_touch_targets() {
 void test_badge_size() {
   // 7-inch portrait card: 158 x 163 content, 55 px icons, 26 px text, 8 px gap.
   DualSwitchBadge stacked = dual_switch_badge(false, 158, 77, 55, 26, 12);
-  check(stacked.diameter == 73 && stacked.icon_scale == 256, "a roomy stacked switch uses a full-size icon");
+  check(stacked.diameter == 55, "a roomy stacked switch uses a badge the size of the icon font");
+  check(stacked.icon_scale == 153, "the icon fills 60% of the badge");
 
-  DualSwitchBadge short_stacked = dual_switch_badge(false, 158, 50, 55, 26, 12);
-  check(short_stacked.diameter == 50, "a short stacked switch fits the badge to its height");
-  check(short_stacked.icon_scale < 256 && short_stacked.icon_scale > 128, "a smaller badge shrinks its icon");
+  DualSwitchBadge short_stacked = dual_switch_badge(false, 158, 40, 55, 26, 12);
+  check(short_stacked.diameter == 40, "a short stacked switch fits the badge to its height");
+  check(short_stacked.icon_scale == 111, "a smaller badge shrinks its icon with it");
 
-  DualSwitchBadge narrow_stacked = dual_switch_badge(false, 100, 77, 55, 26, 12);
-  check(narrow_stacked.diameter == 50, "a stacked badge leaves half the width for the name");
+  DualSwitchBadge narrow_stacked = dual_switch_badge(false, 90, 77, 55, 26, 12);
+  check(narrow_stacked.diameter == 45, "a stacked badge leaves half the width for the name");
 
   DualSwitchBadge side = dual_switch_badge(true, 75, 163, 55, 26, 12);
-  check(side.diameter == 73, "a side-by-side badge uses the ideal size when it fits");
+  check(side.diameter == 55, "a side-by-side badge uses the icon font size when it fits");
 
-  DualSwitchBadge side_narrow = dual_switch_badge(true, 60, 163, 55, 26, 12);
-  check(side_narrow.diameter == 60, "a narrow side-by-side badge fits the width");
+  DualSwitchBadge side_narrow = dual_switch_badge(true, 50, 163, 55, 26, 12);
+  check(side_narrow.diameter == 50, "a narrow side-by-side badge fits the width");
 
   DualSwitchBadge side_short = dual_switch_badge(true, 150, 80, 55, 26, 12);
   check(side_short.diameter == 42, "a short side-by-side badge leaves room for the name below");

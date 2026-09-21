@@ -35,7 +35,7 @@ export function dualSwitchPreviewHtml(b: any, escHtml: (value: unknown) => strin
   return '<span class="sp-dual-switch' + (dualSwitchSideBySide(b) ? " sp-dual-switch-side" : "") + '">' +
     halves.map(function (half) {
       return '<span class="sp-dual-switch-half">' +
-        '<span class="sp-dual-switch-badge mdi mdi-' + dualSwitchIconSlug(half.icon, half.entity) + '"></span>' +
+        '<span class="sp-dual-switch-badge"><span class="mdi mdi-' + dualSwitchIconSlug(half.icon, half.entity) + '"></span></span>' +
         '<span class="sp-dual-switch-name">' + escHtml(half.label || half.entity || "Configure") + '</span>' +
         '</span>';
     }).join("") +

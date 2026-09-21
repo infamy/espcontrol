@@ -86,8 +86,8 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-dual-switch-side{flex-direction:row}" +
         ".sp-dual-switch-half{flex:1;min-width:0;min-height:0;display:flex;align-items:center;gap:calc(var(--btn-pad) * .75)}" +
         ".sp-dual-switch-side .sp-dual-switch-half{flex-direction:column;align-items:flex-start;justify-content:space-between}" +
-        ".sp-dual-switch-badge{flex:none;display:flex;align-items:center;justify-content:center;width:1.45em;height:1.45em;" +
-        "border-radius:50%;background:rgba(255,255,255,.1);font-size:calc(var(--btn-icon) * .75);line-height:1}" +
+        ".sp-dual-switch-badge{flex:none;display:flex;align-items:center;justify-content:center;width:var(--btn-icon);height:var(--btn-icon);" +
+        "border-radius:50%;background:rgba(255,255,255,.1);font-size:calc(var(--btn-icon) * .6);line-height:1}" +
         ".sp-dual-switch-name{min-width:0;font-size:var(--btn-label);line-height:1.2;overflow:hidden;word-break:break-word;" +
         "display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}" +
         ".sp-wifi-qr-preview{display:block;width:84%;height:84%;pointer-events:none}" +
