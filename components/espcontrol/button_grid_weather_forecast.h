@@ -470,12 +470,14 @@ inline bool register_weather_days_card(lv_obj_t *btn, const WeatherDaysCardFonts
   ref.root = weather_days_box(btn, LV_FLEX_FLOW_ROW);
   lv_obj_set_size(ref.root, lv_pct(100), lv_pct(100));
   lv_obj_center(ref.root);
-  lv_obj_set_style_pad_column(ref.root, 12, LV_PART_MAIN);
+  lv_obj_set_style_pad_hor(ref.root, 8, LV_PART_MAIN);
+  lv_obj_set_style_pad_column(ref.root, 16, LV_PART_MAIN);
 
   lv_obj_t *current = weather_days_box(ref.root, LV_FLEX_FLOW_COLUMN);
   lv_obj_set_flex_align(current, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+  lv_obj_set_style_pad_row(current, 4, LV_PART_MAIN);
   lv_obj_t *now_row = weather_days_box(current, LV_FLEX_FLOW_ROW);
-  lv_obj_set_style_pad_column(now_row, 8, LV_PART_MAIN);
+  lv_obj_set_style_pad_column(now_row, 12, LV_PART_MAIN);
   ref.current_icon = weather_days_label(now_row, fonts.icon);
   ref.current_temp = weather_days_label(now_row, fonts.value);
   ref.current_condition = weather_days_label(current, fonts.text);
@@ -490,6 +492,7 @@ inline bool register_weather_days_card(lv_obj_t *btn, const WeatherDaysCardFonts
                         LV_FLEX_ALIGN_CENTER);
   for (int i = 0; i < espcontrol::WEATHER_DAYS_MAX; i++) {
     ref.columns[i] = weather_days_box(ref.days_row, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_style_pad_row(ref.columns[i], 4, LV_PART_MAIN);
     ref.day_lbls[i] = weather_days_label(ref.columns[i], fonts.text);
     lv_obj_set_style_text_opa(ref.day_lbls[i], LV_OPA_80, LV_PART_MAIN);
     ref.icon_lbls[i] = weather_days_label(ref.columns[i], fonts.icon);
