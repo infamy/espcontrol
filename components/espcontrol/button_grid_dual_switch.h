@@ -130,10 +130,9 @@ inline void dual_switch_create_half(DualSwitchCtx *ctx, int index, const std::st
   // rather than across the card.
   const lv_style_selector_t badge_pressed =
     static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_PRESSED);
-  lv_obj_set_style_outline_color(badge, ctx->text_color, badge_pressed);
-  lv_obj_set_style_outline_opa(badge, LV_OPA_60, badge_pressed);
-  lv_obj_set_style_outline_width(badge, 3, badge_pressed);
-  lv_obj_set_style_outline_pad(badge, 3, badge_pressed);
+  lv_obj_set_style_border_color(badge, ctx->text_color, badge_pressed);
+  lv_obj_set_style_border_opa(badge, LV_OPA_70, badge_pressed);
+  lv_obj_set_style_border_width(badge, 3, badge_pressed);
   lv_obj_set_size(badge, espcontrol::DUAL_SWITCH_BADGE_MIN_PX, espcontrol::DUAL_SWITCH_BADGE_MIN_PX);
   half.badge = badge;
 
