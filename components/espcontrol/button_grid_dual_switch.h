@@ -245,13 +245,21 @@ inline bool dual_switch_touch_point(lv_point_t &point) {
   return true;
 }
 
-inline int dual_switch_touched_half(DualSwitchCtx *ctx) {
+inline int dual_switch_touched_half(DualSwitchCtx *ctx, const char *stage) {
   lv_point_t point;
-  if (!ctx || !ctx->btn || !dual_switch_touch_point(point)) return -1;
+  if (!ctx || !ctx->btn || !dual_switch_touch_point(point)) {
+    ESP_LOGW("dual_switch", "%s: no touch point", stage);
+    return -1;
+  }
   lv_area_t area;
   lv_obj_get_coords(ctx->btn, &area);
-  return espcontrol::dual_switch_half_at(
+  const int index = espcontrol::dual_switch_half_at(
     ctx->side_by_side, area.x1, area.y1, area.x2, area.y2, point.x, point.y);
+  ESP_LOGD("dual_switch", "%s at %d,%d on card %d,%d-%d,%d: switch %d",
+           stage, static_cast<int>(point.x), static_cast<int>(point.y),
+           static_cast<int>(area.x1), static_cast<int>(area.y1),
+           static_cast<int>(area.x2), static_cast<int>(area.y2), index + 1);
+  return index;
 }
 
 inline void dual_switch_clear_pressed(DualSwitchCtx *ctx) {
@@ -272,7 +280,7 @@ inline void dual_switch_handle_press(lv_obj_t *btn) {
   if (!ctx) return;
   lv_obj_clear_state(btn, LV_STATE_PRESSED);
   dual_switch_clear_pressed(ctx);
-  const int index = dual_switch_touched_half(ctx);
+  const int index = dual_switch_touched_half(ctx, "Press");
   if (index < 0 || !ctx->halves[index].area) return;
   lv_obj_add_state(ctx->halves[index].area, LV_STATE_PRESSED);
   ctx->press_timer = lv_timer_create([](lv_timer_t *timer) {
@@ -287,8 +295,11 @@ inline void dual_switch_handle_press(lv_obj_t *btn) {
 
 inline void dual_switch_handle_click(lv_obj_t *btn) {
   DualSwitchCtx *ctx = dual_switch_card_for(btn);
-  if (!ctx) return;
-  const int index = dual_switch_touched_half(ctx);
+  if (!ctx) {
+    ESP_LOGW("dual_switch", "Tap on a card without a Dual Switch context");
+    return;
+  }
+  const int index = dual_switch_touched_half(ctx, "Tap");
   dual_switch_clear_pressed(ctx);
   if (index < 0) return;
   const std::string &entity_id = ctx->halves[index].entity_id;
