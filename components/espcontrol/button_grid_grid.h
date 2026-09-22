@@ -301,6 +301,12 @@ inline void reset_card_slot_dynamic_children(BtnSlot &s) {
   sync_card_checked_text_color(s.btn);
   set_card_disabled_state(s.btn, false);
   lv_obj_set_style_opa(s.btn, LV_OPA_COVER, LV_PART_MAIN);
+  // Cards such as Dual Switch replace the pressed look; apply_button_colors
+  // sets the configured one again after this reset.
+  const lv_style_selector_t pressed =
+    static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_PRESSED);
+  lv_obj_remove_local_style_prop(s.btn, LV_STYLE_BG_COLOR, pressed);
+  lv_obj_remove_local_style_prop(s.btn, LV_STYLE_COLOR_FILTER_OPA, pressed);
   if (s.icon_lbl) lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
   if (s.sensor_container) lv_obj_set_user_data(s.sensor_container, nullptr);
   if (s.text_lbl) {

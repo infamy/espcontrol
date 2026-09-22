@@ -179,6 +179,12 @@ inline DualSwitchCtx *setup_dual_switch_card(BtnSlot &s, const ParsedCfg &p, uin
 
   const lv_coord_t pad = lv_obj_get_style_pad_left(s.btn, LV_PART_MAIN);
   const lv_coord_t radius = lv_obj_get_style_radius(s.btn, LV_PART_MAIN);
+  // Only the touched switch shows the press, so the card keeps its normal
+  // colour while pressed. reset_card_slot_dynamic_children restores it.
+  const lv_style_selector_t pressed =
+    static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_PRESSED);
+  lv_obj_set_style_bg_color(s.btn, lv_obj_get_style_bg_color(s.btn, LV_PART_MAIN), pressed);
+  lv_obj_set_style_color_filter_opa(s.btn, LV_OPA_TRANSP, pressed);
   lv_obj_t *root = lv_obj_create(s.btn);
   lv_obj_remove_style_all(root);
   lv_obj_clear_flag(root, LV_OBJ_FLAG_CLICKABLE);
@@ -273,12 +279,11 @@ inline void dual_switch_clear_pressed(DualSwitchCtx *ctx) {
   }
 }
 
-// Highlights only the touched switch instead of the whole card. A short timer
-// clears it when the press turns into a swipe and no click follows.
+// Highlights the touched switch. A short timer clears it when the press turns
+// into a swipe and no click follows.
 inline void dual_switch_handle_press(lv_obj_t *btn) {
   DualSwitchCtx *ctx = dual_switch_card_for(btn);
   if (!ctx) return;
-  lv_obj_clear_state(btn, LV_STATE_PRESSED);
   dual_switch_clear_pressed(ctx);
   const int index = dual_switch_touched_half(ctx, "Press");
   if (index < 0 || !ctx->halves[index].area) return;
