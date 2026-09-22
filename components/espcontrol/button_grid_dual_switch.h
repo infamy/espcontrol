@@ -109,11 +109,6 @@ inline void dual_switch_create_half(DualSwitchCtx *ctx, int index, const std::st
   lv_obj_clear_flag(area, LV_OBJ_FLAG_CLICKABLE);
   lv_obj_clear_flag(area, LV_OBJ_FLAG_SCROLLABLE);
   lv_obj_set_flex_grow(area, 1);
-  lv_obj_set_style_radius(area, radius, LV_PART_MAIN);
-  lv_obj_set_style_bg_color(area, lv_color_hex(ctx->on_color), LV_PART_MAIN);
-  lv_obj_set_style_bg_opa(area, LV_OPA_TRANSP, LV_PART_MAIN);
-  lv_obj_set_style_bg_opa(area, LV_OPA_20,
-    static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
   lv_obj_set_style_pad_column(area, inner_gap, LV_PART_MAIN);
   lv_obj_set_style_pad_row(area, inner_gap, LV_PART_MAIN);
   lv_obj_set_flex_flow(area, ctx->side_by_side ? LV_FLEX_FLOW_COLUMN : LV_FLEX_FLOW_ROW);
@@ -131,6 +126,14 @@ inline void dual_switch_create_half(DualSwitchCtx *ctx, int index, const std::st
   lv_obj_clear_flag(badge, LV_OBJ_FLAG_CLICKABLE);
   lv_obj_clear_flag(badge, LV_OBJ_FLAG_SCROLLABLE);
   lv_obj_set_style_radius(badge, LV_RADIUS_CIRCLE, LV_PART_MAIN);
+  // A ring around the pressed switch, so the press shows on the switch itself
+  // rather than across the card.
+  const lv_style_selector_t badge_pressed =
+    static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_PRESSED);
+  lv_obj_set_style_outline_color(badge, ctx->text_color, badge_pressed);
+  lv_obj_set_style_outline_opa(badge, LV_OPA_60, badge_pressed);
+  lv_obj_set_style_outline_width(badge, 3, badge_pressed);
+  lv_obj_set_style_outline_pad(badge, 3, badge_pressed);
   lv_obj_set_size(badge, espcontrol::DUAL_SWITCH_BADGE_MIN_PX, espcontrol::DUAL_SWITCH_BADGE_MIN_PX);
   half.badge = badge;
 
@@ -275,7 +278,7 @@ inline void dual_switch_clear_pressed(DualSwitchCtx *ctx) {
     ctx->press_timer = nullptr;
   }
   for (DualSwitchHalf &half : ctx->halves) {
-    if (half.area) lv_obj_clear_state(half.area, LV_STATE_PRESSED);
+    if (half.badge) lv_obj_clear_state(half.badge, LV_STATE_PRESSED);
   }
 }
 
@@ -286,13 +289,13 @@ inline void dual_switch_handle_press(lv_obj_t *btn) {
   if (!ctx) return;
   dual_switch_clear_pressed(ctx);
   const int index = dual_switch_touched_half(ctx, "Press");
-  if (index < 0 || !ctx->halves[index].area) return;
-  lv_obj_add_state(ctx->halves[index].area, LV_STATE_PRESSED);
+  if (index < 0 || !ctx->halves[index].badge) return;
+  lv_obj_add_state(ctx->halves[index].badge, LV_STATE_PRESSED);
   ctx->press_timer = lv_timer_create([](lv_timer_t *timer) {
     DualSwitchCtx *owner = static_cast<DualSwitchCtx *>(lv_timer_get_user_data(timer));
     owner->press_timer = nullptr;
     for (DualSwitchHalf &half : owner->halves) {
-      if (half.area) lv_obj_clear_state(half.area, LV_STATE_PRESSED);
+      if (half.badge) lv_obj_clear_state(half.badge, LV_STATE_PRESSED);
     }
   }, 400, ctx);
   if (ctx->press_timer) lv_timer_set_repeat_count(ctx->press_timer, 1);
